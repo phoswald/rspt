@@ -23,11 +23,25 @@
   <build>
     <plugins>
       <plugin>
+        <!-- The Java Compiler -->
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.0</version>
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <!-- Make an executable JAR -->
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>phoswald.rspt.Main</mainClass>
+            </manifest>
+          </archive>
         </configuration>
       </plugin>
     </plugins>
