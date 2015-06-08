@@ -90,22 +90,22 @@ public class GeneratorJava extends Generator {
                         String text;
                         if(ins_set) {
                             func = "tset"; need_tset = true;
-                            literals.add(sym2t.text());
-                            text = "t_" + literals.size() + " /* \"" + quoteComment(sym2t.text()) + "\" */";
+                            literals.add(sym2t.getText());
+                            text = "t_" + literals.size() + " /* \"" + quoteComment(sym2t.getText()) + "\" */";
                         } else if(ins_range) {
                             func = "trange"; need_trange = true;
-                            text = "\'" + quote(sym2t.text().substring(0, 1)) + "\', \'" + quote(sym2t.text().substring(1, 2)) + "\'";
+                            text = "\'" + quote(sym2t.getText().substring(0, 1)) + "\', \'" + quote(sym2t.getText().substring(1, 2)) + "\'";
                         } else if(ins_notset) {
                             func = "tnotset"; need_tnotset = true;
-                            literals.add(sym2t.text());
-                            text = "t_" + literals.size() + " /* \"" + quoteComment(sym2t.text()) + "\" */";
-                        } else if(sym2t.text().length() == 1) {
+                            literals.add(sym2t.getText());
+                            text = "t_" + literals.size() + " /* \"" + quoteComment(sym2t.getText()) + "\" */";
+                        } else if(sym2t.getText().length() == 1) {
                             func = "tc"; need_tc = true;
-                            text = "\'" + quote(sym2t.text()) + "\'";
+                            text = "\'" + quote(sym2t.getText()) + "\'";
                         } else {
                             func = "ts"; need_ts = true;
-                            literals.add(sym2t.text());
-                            text = "t_" + literals.size() + " /* \"" + quoteComment(sym2t.text()) + "\" */";
+                            literals.add(sym2t.getText());
+                            text = "t_" + literals.size() + " /* \"" + quoteComment(sym2t.getText()) + "\" */";
                         }
                         writeLine(writer, "        " + indent + "    final Ref_int pos" + idx + " = new Ref_int(pos" + (idx-1) + ".val);");
                         writeLine(writer, "        " + indent + "    if(" + func + "(pos" + idx + ", " + text + ")) {");
@@ -115,15 +115,15 @@ public class GeneratorJava extends Generator {
                         ins_range  = false;
                         ins_notset = false;
                     } else if(sym2 instanceof SymbolCode) {
-                        writeLine(writer, "        " + indent + "    " + ((SymbolCode) sym2).code() + ";");
+                        writeLine(writer, "        " + indent + "    " + ((SymbolCode) sym2).getCode() + ";");
                     } else if(sym2 instanceof SymbolInstr) {
                         SymbolInstr sym2i = (SymbolInstr) sym2;
-                        switch(sym2i.instruction()) {
-                            case TO:     ins_to     = sym2i.toResult(); break;
-                            case SET:    ins_set    = true;             break;
-                            case RANGE:  ins_range  = true;             break;
-                            case NOTSET: ins_notset = true;             break;
-                            default: throw new SyntaxException("Invalid instruction '" + sym2i.token + "'.");
+                        switch(sym2i.getInstruction()) {
+                            case TO:     ins_to     = sym2i.getToTarget(); break;
+                            case SET:    ins_set    = true; break;
+                            case RANGE:  ins_range  = true; break;
+                            case NOTSET: ins_notset = true; break;
+                            default: throw new SyntaxException("Invalid instruction '" + sym2i.getToken() + "'.");
                         }
                     }
                 }

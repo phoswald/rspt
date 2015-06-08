@@ -8,7 +8,7 @@ public abstract class Generator {
 
     protected final Grammar grammar;
 
-    protected String indent = "";
+    protected final StringBuilder indent = new StringBuilder();
 
     protected Generator(Grammar grammar) {
         this.grammar = Objects.requireNonNull(grammar);
@@ -17,10 +17,11 @@ public abstract class Generator {
     protected void indent(int i) {
         if(i > 0) {
             while(i-- > 0) {
-                indent = indent + ' ';
+                indent.append(' ');
             }
         } else if(i < 0) {
-            indent = indent.substring(-i);
+            i = -i;
+            indent.delete(indent.length() - i, indent.length());
         }
     }
 

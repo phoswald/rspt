@@ -9,7 +9,7 @@ public class SymbolInstr extends Symbol {
         super(token);
     }
 
-    public Instruction instruction() throws SyntaxException {
+    public Instruction getInstruction() throws SyntaxException {
         if(token.startsWith("<to:")) {
             return Instruction.TO;
         }
@@ -25,7 +25,7 @@ public class SymbolInstr extends Symbol {
         throw new SyntaxException("Invalid instruction '" + token + "'.");
     }
 
-    public String toResult() {
+    public String getToTarget() {
         return token.substring(4, token.length() - 1);
     }
 }

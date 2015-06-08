@@ -7,9 +7,13 @@ import java.util.Objects;
  */
 public abstract class Symbol {
 
-    public final String token;
+    protected final String token;
 
     protected Symbol(String token) {
         this.token = Objects.requireNonNull(token);
+    }
+
+    public String getToken() {
+        return token;
     }
 }

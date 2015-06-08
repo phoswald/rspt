@@ -9,7 +9,7 @@ public class SymbolTerm extends Symbol {
         super(token);
     }
 
-    public String text() {
+    public String getText() {
         return token.substring(1, token.length() - 1);
     }
 }
