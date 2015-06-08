@@ -1,0 +1,162 @@
+####
+#
+# RSPT Grammar for conditions for filtering log events. A C++ parser  
+# accepting this grammar can be generated using the following command line:
+#
+#     RSPT.exe -gen=cpp Grammar.txt Parser.h
+#
+####
+
+<export> FILTER : SFilter = 
+    WS <to:output> SELECT_CLAUSE 
+       <to:output> WHERE_CLAUSE 
+       <to:output> JOIN_CLAUSE
+       <to:output> GROUP_CLAUSE ;
+
+# TODO: Make keywords case-insensitive
+# TODO: Match keywords only if they are identifiers
+# TODO: Generate meaningful error messages
+
+### SELECT ###
+
+SELECT_CLAUSE : SFilter =
+    'SELECT' WS <to:output.m_bDistinct> DISTINCT <to:output.m_pSelect> STRING_EXPR WS | ;
+    
+DISTINCT : bool =
+    'DISTINCT' WS { output=true } | ;
+ 
+### WHERE ###
+    
+WHERE_CLAUSE : SFilter =
+     'WHERE' WS <to:output.m_pCondition> BOOL_EXPR | 
+                <to:output.m_pCondition> BOOL_EXPR | ;
+  
+### JOIN ###
+
+JOIN_CLAUSE : SFilter = 
+    'JOIN' WS 'ATTR' WS STRING_CONST { output.m_sJoinAttr=output5 } WS | ;
+
+### GROUP BY / AGGREGATE BY ###
+  
+GROUP_CLAUSE : SFilter =
+    'GROUP'     WS 'BY' WS <to:output.m_pGroup>     GROUP_FUNC WS <to:output> GROUP_FILL WS
+    'AGGREGATE' WS 'BY' WS <to:output.m_pAggregate> AGGREGATE_FUNC WS | ; 
+    
+GROUP_FUNC : FGroup* =
+    'YEAR'   { output=&SFilter::GroupByYear   } | 
+    'MONTH'  { output=&SFilter::GroupByMonth  } | 
+    'DAY'    { output=&SFilter::GroupByDay    } | 
+    'HOUR'   { output=&SFilter::GroupByHour   } | 
+    'MINUTE' { output=&SFilter::GroupByMinute } | 
+    'SECOND' { output=&SFilter::GroupBySecond } ;
+    
+AGGREGATE_FUNC : FAggregate* =
+    'AVERAGE' { output=&SFilter::AggregateByAverage } | 
+    'CONCAT'  { output=&SFilter::AggregateByConcat  } | 
+    'COUNT'   { output=&SFilter::AggregateByCount   } | 
+    'SUM'     { output=&SFilter::AggregateBySum     } ;
+    
+GROUP_FILL : SFilter = 
+    'FILL' WS 'WITH' WS STRING_CONST { output.m_bGroupFill=true; output.m_sGroupFill=output5 } | ;
+
+### Whitespace and Comments ###
+
+WS = <set> ' \t\r\n' WS | '/*' CM WS | ;
+CM = '*/' | <notset> '*' CM | '*' <notset> '/' CM ;
+
+### Boolean ###
+
+BOOL_EXPR : TIcbRefCntPtr<TExpr<bool>> = 
+	<to:output> BOOL_EXPR2 WS <to:output> BOOL_OPEXPR ;
+
+BOOL_OPEXPR : TIcbRefCntPtr<TExpr<bool>> = 
+	BOOL_OP WS BOOL_EXPR { output = new CExprOperatorOfBool(output1, output, output3) } | ;
+
+BOOL_OP : EOperator = 
+	'='   { output = Operator_EQUAL   } |
+	'<>'  { output = Operator_UNEQUAL } |
+	'AND' { output = Operator_AND     } |
+	'OR'  { output = Operator_OR      } ;
+
+BOOL_EXPR2 : TIcbRefCntPtr<TExpr<bool>> = 
+	'(' WS <to:output> BOOL_EXPR WS ')' |
+	'NOT' WS BOOL_EXPR2 { output = new CExprBoolNotBool(output3) } |
+	<to:output> BOOL_SYMBOL     |
+	<to:output> BOOL_OPSTRING   |
+	<to:output> BOOL_OPDATETIME |
+	<to:output> BOOL_OPTIME     ;
+	
+BOOL_SYMBOL : TIcbRefCntPtr<TExpr<bool>> = 
+	'FALSE' { output = new TExprConst<bool>(false) } |
+	'TRUE'  { output = new TExprConst<bool>(true)  } |
+	'HASATTR' WS '(' WS STRING_EXPR WS ')' { output = new TExprFunc1<bool, CIcbString>(&CExprFunc::HASATTR, output5) } ;
+
+### String ###
+
+BOOL_OPSTRING : TIcbRefCntPtr<TExpr<bool>> =	
+	STRING_EXPR WS STRING_OP WS STRING_EXPR { output = new CExprOperatorOfString(output3, output1, output5) } ;
+
+STRING_OP : EOperator = 
+	'='             { output = Operator_EQUAL   } |
+	'<>'            { output = Operator_UNEQUAL } |
+	'LIKE'          { output = Operator_LIKE    } |
+	'NOT' WS 'LIKE' { output = Operator_NOTLIKE } ;
+	
+STRING_EXPR : TIcbRefCntPtr<TExpr<CIcbString>> =
+	'(' WS <to:output> STRING_EXPR WS ')' |
+	<to:output> STRING_SYMBOL |
+	STRING_CONST { output = new TExprConst<CIcbString>(output1) }  ;
+	
+STRING_SYMBOL : TIcbRefCntPtr<TExpr<CIcbString>> = 
+	'EV_LEVEL' { output = new TExprFunc0<CIcbString>(&CExprFunc::EV_LEVEL) } |
+	'EV_TEXT'  { output = new TExprFunc0<CIcbString>(&CExprFunc::EV_TEXT) } |
+	'LOWER' WS '(' WS STRING_EXPR WS ')' { output = new TExprFunc1<CIcbString, CIcbString>(&CExprFunc::LOWER, output5) } | 
+	'UPPER' WS '(' WS STRING_EXPR WS ')' { output = new TExprFunc1<CIcbString, CIcbString>(&CExprFunc::UPPER, output5) } |
+	'ATTR'  WS '(' WS STRING_EXPR WS ')' { output = new TExprFunc1<CIcbString, CIcbString>(&CExprFunc::ATTR,  output5) } ;
+	
+STRING_CONST : CIcbString = 
+	'\'' STRING_CHARS '\'' { output = CIcbString(output2.GetData(), output2.GetSize()) } ;
+STRING_CHARS : TIcbArray<TCHAR> = <to:output> STRING_CHAR <to:output> STRING_CHARS | ;
+STRING_CHAR  : TIcbArray<TCHAR> = '\'\'' { output.Add('\\\'') } | <notset> '\'\r\n' { output.Add(_input[pos0]) } ;
+
+### Datetime ###
+
+BOOL_OPDATETIME : TIcbRefCntPtr<TExpr<bool>> =	
+	DATETIME_EXPR WS DATETIME_OP WS DATETIME_EXPR { output = new TExprOperator<CIcbDateTime>(output3, output1, output5) } ;
+
+DATETIME_OP : EOperator = 
+	'='  { output = Operator_EQUAL }       | 
+	'<>' { output = Operator_UNEQUAL }     | 
+	'<=' { output = Operator_BEFOREEQUAL } | 
+	'<'  { output = Operator_BEFORE }      | 
+	'>=' { output = Operator_AFTEREQUAL }  | 
+	'>'  { output = Operator_AFTER }       ; 
+
+DATETIME_EXPR : TIcbRefCntPtr<TExpr<CIcbDateTime>> =
+	'(' WS <to:output> DATETIME_EXPR WS ')' |
+	<to:output> DATETIME_SYMBOL ;
+	
+DATETIME_SYMBOL : TIcbRefCntPtr<TExpr<CIcbDateTime>> =
+	'EV_DATETIME' { output = new TExprFunc0<CIcbDateTime>(&CExprFunc::EV_DATETIME) } |
+	'DATETIME' WS '(' WS STRING_EXPR WS ')' { output = new TExprFunc1<CIcbDateTime, CIcbString>(&CExprFunc::DATETIME, output5) } ;
+
+### Time ###
+
+BOOL_OPTIME : TIcbRefCntPtr<TExpr<bool>> =	
+	TIME_EXPR WS TIME_OP WS TIME_EXPR { output = new TExprOperator<CIcbTime>(output3, output1, output5) } ;
+
+TIME_OP : EOperator = 
+	'='  { output = Operator_EQUAL }       | 
+	'<>' { output = Operator_UNEQUAL }     | 
+	'<=' { output = Operator_BEFOREEQUAL } | 
+	'<'  { output = Operator_BEFORE }      | 
+	'>=' { output = Operator_AFTEREQUAL }  | 
+	'>'  { output = Operator_AFTER }       ; 
+
+TIME_EXPR : TIcbRefCntPtr<TExpr<CIcbTime>> =
+	'(' WS <to:output> TIME_EXPR WS ')' |
+	<to:output> TIME_SYMBOL ;
+	
+TIME_SYMBOL : TIcbRefCntPtr<TExpr<CIcbTime>> =
+	'EV_TIME' { output = new TExprFunc0<CIcbTime>(&CExprFunc::EV_TIME) } |
+	'TIME' WS '(' WS STRING_EXPR WS ')' { output = new TExprFunc1<CIcbTime, CIcbString>(&CExprFunc::TIME, output5) } ;

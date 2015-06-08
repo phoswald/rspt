@@ -47,8 +47,7 @@ public abstract class Generator {
 
     protected void writeLine(Writer writer, String line) throws IOException {
         writer.write(line);
-        writer.write('\r');
-        writer.write('\n');
+        writer.write(System.lineSeparator()); // Note: MONO under Linux will generated '\n' instead of '\r\n' as well
     }
 
     public abstract void generate(Writer writer) throws IOException, SyntaxException;

@@ -21,7 +21,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testGenerateParserJava() throws IOException {
+    public void testCalculatorJava() throws IOException {
         Files.deleteIfExists(Paths.get("target", "test-output", "CalculatorJava.java"));
 
         Main.main(new String[] {
@@ -35,7 +35,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testGenerateParserCSharp() throws IOException {
+    public void testCalculatorCSharp() throws IOException {
         Files.deleteIfExists(Paths.get("target", "test-output", "CalculatorCS.cs"));
 
         Main.main(new String[] {
@@ -49,7 +49,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testGenerateParserCPlusPlus() throws IOException {
+    public void testCalculatorCPlusPlus() throws IOException {
         Files.deleteIfExists(Paths.get("target", "test-output", "CalculatorCPP.h"));
 
         Main.main(new String[] {
@@ -60,6 +60,48 @@ public class TestParserGenerator {
         compareFiles(
                 Paths.get("src", "test", "resources", "CalculatorCPP.h"),
                 Paths.get("target", "test-output", "CalculatorCPP.h"));
+    }
+
+    @Test
+    public void testIcbScriptCPlusPlus() throws IOException {
+        Files.deleteIfExists(Paths.get("target", "test-output", "IcbScript.h"));
+
+        Main.main(new String[] {
+                "-gen=cpp",
+                Paths.get("src", "test", "resources", "IcbScript.txt").toString(),
+                Paths.get("target", "test-output", "IcbScript.h").toString() });
+
+        compareFiles(
+                Paths.get("src", "test", "resources", "IcbScript.h"),
+                Paths.get("target", "test-output", "IcbScript.h"));
+    }
+
+    @Test
+    public void testLogAnalyzerCPlusPlus() throws IOException { // TODO UTF-16 cannot be processed. UTF-8 with BOM may also fail.
+        Files.deleteIfExists(Paths.get("target", "test-output", "LogAnalyzer.h"));
+
+        Main.main(new String[] {
+                "-gen=cpp",
+                Paths.get("src", "test", "resources", "LogAnalyzer.txt").toString(),
+                Paths.get("target", "test-output", "LogAnalyzer.h").toString() });
+
+        compareFiles(
+                Paths.get("src", "test", "resources", "LogAnalyzer.h"),
+                Paths.get("target", "test-output", "LogAnalyzer.h"));
+    }
+
+    @Test
+    public void testUdmJava() throws IOException {
+        Files.deleteIfExists(Paths.get("target", "test-output", "UDM.java"));
+
+        Main.main(new String[] {
+                "-gen=java",
+                Paths.get("src", "test", "resources", "UDM.txt").toString(),
+                Paths.get("target", "test-output", "UDM.java").toString() });
+
+        compareFiles(
+                Paths.get("src", "test", "resources", "UDM.java"),
+                Paths.get("target", "test-output", "UDM.java"));
     }
 
     private void compareFiles(Path expected, Path actual) throws IOException {

@@ -1,0 +1,297 @@
+#############################################################################
+#
+# File: IcbScriptGrammar.txt
+# The grammar and the C++ parser for script expressions
+#
+# Intrasoft Code Base - Package Script (NEW parser)
+#
+#############################################################################
+
+#############################################################################
+# This file defines a LL(x) grammar and a top down (recursive descent) parser.
+# Rules are defined as lists of terminal or non terminal symbols. 
+# All rules in the grammar must be non left-recursive. A simple example:
+#
+#   NAME = TITLE ' ' SURNAME     |  # Two rules that consist of two non 
+#          FIRSTNAME ' ' SURNAME ;  # terminals and one terminal each.
+#   TITLE = 'DR' | 'PROF' ;         # A rule that consists of terminals only.
+#   FIRSTNAME = WORD ;
+#   SURNAME   = WORD ;
+#   WORD      = LETTER LETTERS ;
+#   LETTER    = <range> 'AZ' ;      # One of many terminals: A, B, ..., Z.
+#   LETTERS   = LETTER LETTERS |    # A right recursive rule. 
+#                              ;    # A rule may also be empty. 
+#
+# Additionally, it is possible to:
+# a) Assign data types to non terminals. 
+#    Example: NAME : CString = ... ;  
+# b) Place code into rules. You can use the input data and the output 
+#    of preceeding non terminals to compute the output of the rule.         
+#    Example: NAME = TITLE SURNAME { printf("Hello, %s %s.", output1, output2) }
+# c) Customize the code generator by specifying the target namespace and class as
+#    well as includes and additional code blocks to be placed into the parser class.
+#    Examples: <namespace:Foo>
+#              <class:MyParser>
+#              { bool ValidateSomething(CString s) {...} }
+#
+# Note: Use the following command to create a C++ parser for this grammar:
+#       RSPT.EXE -gen=cpp IcbScriptGrammar.txt IcbScriptGrammar.h
+#############################################################################
+
+### Class and Exported Root Node ############################################
+# Use the <export> notation to make a non terminal publicly usable. 
+
+<class:CIcbScriptGrammar>
+
+<export> SCRIPT : CIcbScriptPtr = 
+  { errmsg = 0 } # this should not be necessary!
+  WS <to:output> ROOT WS ;
+
+### Whitespace and Comments #################################################
+
+WS = <set> ' \t\r\n' WS | '/*' CM WS | ;
+CM = '*/' | <notset> '*' CM | '*' <notset> '/' CM ;
+
+### Nodes ###################################################################
+# The root note is exported in SCRIPT and also referenced in other places
+# that can contain nested expressions (for example in brackets).
+
+ROOT : CIcbScriptPtr = { errmsg = err000 } <to:output> CDL_EXPR ;
+
+### Conditional #############################################################
+# The ternary conditional operator has the lowest weight (i.e. it is evaluated last).
+# It associates from right to left.
+
+CDL_EXPR : CIcbScriptPtr =  
+  <to:output> LOR_EXPR WS <to:output> CDL_OPEXPR ;
+  
+CDL_OPEXPR : CIcbScriptPtr =
+  '?' { errmsg = err003 } WS LOR_EXPR WS ':' { errmsg = err003 } WS CDL_EXPR { output = type->CompileOp_Cndtnl(CIcbScriptLocation(_input, _size, pos), output, output3, output7) } | ;
+
+### Logical Or ##############################################################
+# These operators have equal precedence and associate from left to right
+
+# Since left recursion is not allowed in LL grammars, defining a left-associative operator 
+# is a little tricky. A way around this is to pass the output of the left-hand side of
+# an expression to the right-hand side of the expression. This can be accomplished using
+# the <to:output> notation in the grammar. Additionally, we must be careful not to place
+# code blocks on the right end (as this would result in right-associative behaviour).
+
+LOR_EXPR : CIcbScriptPtr = 
+  <to:output> LAND_EXPR WS <to:output> LOR_OPEXPR ;
+  
+LOR_OPEXPR : CIcbScriptPtr = 
+  LOR_OP { errmsg = err001 } WS LAND_EXPR { output=(type->*output1)(CIcbScriptLocation(_input, _size, pos), output, output3) } WS <to:output> LOR_OPEXPR | ;
+ 
+LOR_OP : CIcbScriptType::FCompileOp2 = 
+  '||' { output = &CIcbScriptType::CompileOp_LogicalOr } ;
+
+### Logical And #############################################################
+# These operators have equal precedence and associate from left to right
+
+LAND_EXPR : CIcbScriptPtr = 
+  <to:output> BOR_EXPR WS <to:output> LAND_OPEXPR ;
+  
+LAND_OPEXPR : CIcbScriptPtr = 
+  LAND_OP { errmsg = err001 } WS BOR_EXPR { output=(type->*output1)(CIcbScriptLocation(_input, _size, pos), output, output3) } WS <to:output> LAND_OPEXPR | ;
+ 
+LAND_OP : CIcbScriptType::FCompileOp2 = 
+  '&&' { output = &CIcbScriptType::CompileOp_LogicalAnd } ;
+
+### Bitwise Or ##############################################################
+# These operators have equal precedence and associate from left to right
+
+BOR_EXPR : CIcbScriptPtr = 
+  <to:output> BAND_EXPR WS <to:output> BOR_OPEXPR ;
+  
+BOR_OPEXPR : CIcbScriptPtr = 
+  BOR_OP { errmsg = err001 } WS BAND_EXPR { output=(type->*output1)(CIcbScriptLocation(_input, _size, pos), output, output3) } WS <to:output> BOR_OPEXPR | ;
+ 
+BOR_OP : CIcbScriptType::FCompileOp2 = 
+  '|' { output = &CIcbScriptType::CompileOp_BitwiseOr } ;
+
+### Bitwise And #############################################################
+# These operators have equal precedence and associate from left to right
+
+BAND_EXPR : CIcbScriptPtr = 
+  <to:output> EQU_EXPR WS <to:output> BAND_OPEXPR ;
+  
+BAND_OPEXPR : CIcbScriptPtr = 
+  BAND_OP { errmsg = err001 } WS EQU_EXPR { output=(type->*output1)(CIcbScriptLocation(_input, _size, pos), output, output3) } WS <to:output> BAND_OPEXPR | ;
+ 
+BAND_OP : CIcbScriptType::FCompileOp2 = 
+  '&' { output = &CIcbScriptType::CompileOp_BitwiseAnd } ;
+
+### Equality ################################################################
+# These operators have equal precedence and associate from left to right
+
+EQU_EXPR : CIcbScriptPtr = 
+  <to:output> CMP_EXPR WS <to:output> EQU_OPEXPR ;
+  
+EQU_OPEXPR : CIcbScriptPtr = 
+  EQU_OP { errmsg = err001 } WS CMP_EXPR { output=(type->*output1)(CIcbScriptLocation(_input, _size, pos), output, output3) } WS <to:output> EQU_OPEXPR | ;
+ 
+EQU_OP : CIcbScriptType::FCompileOp2 = 
+  '==' { output = &CIcbScriptType::CompileOp_Equal    } |
+  '!=' { output = &CIcbScriptType::CompileOp_NotEqual } ;
+
+### Comparision #############################################################
+# These operators have equal precedence and associate from left to right
+
+CMP_EXPR : CIcbScriptPtr = 
+  <to:output> SHF_EXPR WS <to:output> CMP_OPEXPR ;
+  
+CMP_OPEXPR : CIcbScriptPtr = 
+  CMP_OP { errmsg = err001 } WS SHF_EXPR { output=(type->*output1)(CIcbScriptLocation(_input, _size, pos), output, output3) } WS <to:output> CMP_OPEXPR | ;
+ 
+CMP_OP : CIcbScriptType::FCompileOp2 = 
+  '<=' { output = &CIcbScriptType::CompileOp_LessEqual    } | # Note: must come before '<' 
+  '>=' { output = &CIcbScriptType::CompileOp_GreaterEqual } | # Note: must come before '>' 
+  '<'  { output = &CIcbScriptType::CompileOp_Less         } |
+  '>'  { output = &CIcbScriptType::CompileOp_Greater      } ; 
+
+### Shifting ################################################################
+# These operators have equal precedence and associate from left to right
+
+SHF_EXPR : CIcbScriptPtr = 
+  <to:output> ADD_EXPR WS <to:output> SHF_OPEXPR ;
+  
+SHF_OPEXPR : CIcbScriptPtr = 
+  SHF_OP { errmsg = err001 } WS ADD_EXPR { output=(type->*output1)(CIcbScriptLocation(_input, _size, pos), output, output3) } WS <to:output> SHF_OPEXPR | ;
+ 
+SHF_OP : CIcbScriptType::FCompileOp2 = 
+  '<<' { output = &CIcbScriptType::CompileOp_ShiftLeft  } |
+  '>>' { output = &CIcbScriptType::CompileOp_ShiftRight } ;
+      
+### Additive ################################################################
+# These operators have equal precedence and associate from left to right.
+
+ADD_EXPR : CIcbScriptPtr = 
+  <to:output> MUL_EXPR WS <to:output> ADD_OPEXPR ;
+  
+ADD_OPEXPR : CIcbScriptPtr = 
+  ADD_OP { errmsg = err001 } WS MUL_EXPR { output=(type->*output1)(CIcbScriptLocation(_input, _size, pos), output, output3) } WS <to:output> ADD_OPEXPR | ;
+ 
+ADD_OP : CIcbScriptType::FCompileOp2 = 
+  '+' { output = &CIcbScriptType::CompileOp_Addition    } |
+  '-' { output = &CIcbScriptType::CompileOp_Subtraction } ;
+
+### Multiplicative ##########################################################
+# These operators have equal precedence and associate from left to right
+
+MUL_EXPR : CIcbScriptPtr = 
+  <to:output> NOT_EXPR WS <to:output> MUL_OPEXPR ;
+  
+MUL_OPEXPR : CIcbScriptPtr = 
+  MUL_OP { errmsg = err001 } WS NOT_EXPR { output=(type->*output1)(CIcbScriptLocation(_input, _size, pos), output, output3) } WS <to:output> MUL_OPEXPR | ; 
+
+MUL_OP : CIcbScriptType::FCompileOp2 = 
+  '*' { output = &CIcbScriptType::CompileOp_Multiplictn } |
+  '/' { output = &CIcbScriptType::CompileOp_Division    } |
+  '%' { output = &CIcbScriptType::CompileOp_Modulus     } ;
+
+### Unary prefix operators ##################################################
+# These operators have the higher weight than the binary operators (i.e. they are evaluated before). 
+# They associate from right to left
+
+NOT_EXPR : CIcbScriptPtr = 
+  NOT_OP { errmsg = err002 } WS NOT_EXPR { output = (type->*output1)(CIcbScriptLocation(_input, _size, pos), output3) } |
+  <to:output> SCOPE_EXPR ;
+
+NOT_OP : CIcbScriptType::FCompileOp1 = 
+  '!' { output = &CIcbScriptType::CompileOp_LogicalNot } |
+  '~' { output = &CIcbScriptType::CompileOp_BitwiseNot } ;
+
+### Scope Operator ##########################################################
+# These operators have the heighest weight (i.e. they are evaluated first). 
+# They associate from left to right
+
+SCOPE_EXPR : CIcbScriptPtr = 
+  <to:output> LEAF WS <to:output> SCOPE_OPEXPR ;
+
+SCOPE_OPEXPR : CIcbScriptPtr = 
+  '.' { errmsg = err008 } WS LEAF { output=type->CompileOp_Scope(CIcbScriptLocation(_input, _size, pos), output, output3) } WS <to:output> SCOPE_OPEXPR | ; 
+
+### Leaf Nodes ##############################################################
+# At the bottom level, we have brackets, literals (values), 
+# symbols (variables and constants) and function calls.
+
+LEAF : CIcbScriptPtr = 
+  '(' WS <to:output> ROOT WS { errmsg = err006 } ')' |
+  <to:output> LITERAL | 
+  SYMBOL WS ARGLIST { output = type->CompileFunction(CIcbScriptLocation(_input, _size, pos), output1, output3); } |
+  SYMBOL            { output = type->CompileSymbol(CIcbScriptLocation(_input, _size, pos), output1) } ;
+  
+ARGLIST : TIcbArray<CIcbScriptPtr> =
+  '(' WS ROOT { output.Add(output3) } WS { errmsg = err006 } <to:output> ARGLIST_TAIL | 
+  '(' WS ')' ;
+   
+ARGLIST_TAIL : TIcbArray<CIcbScriptPtr> = 
+  ',' WS ROOT { output.Add(output3) } WS { errmsg = err006 } <to:output> ARGLIST_TAIL | 
+  ')' ;
+
+### Literals and Symbols ####################################################
+
+LITERAL : CIcbScriptPtr = 
+  'false'         { output = type->CompileConst(CIcbScriptLocation(_input, _size, pos), false) }    |
+  'true'          { output = type->CompileConst(CIcbScriptLocation(_input, _size, pos), true) }     |
+  LITERAL_STRING  { output = type->CompileConst(CIcbScriptLocation(_input, _size, pos), output1) }  | 
+  LITERAL_INTEGER { output = type->CompileConst(CIcbScriptLocation(_input, _size, pos), output1) }  |
+  LITERAL_ARRAY   { output = type->CompileArray(CIcbScriptLocation(_input, _size, pos), output1); } ; 
+  
+LITERAL_STRING : CIcbString = 
+  '\"' { errmsg = err004 } LITERAL_STRING_CHAR_SEQ '\"' { output = CIcbString(output2.GetData(), output2.GetSize()) } ;
+
+LITERAL_STRING_CHAR_SEQ : TIcbArray<TCHAR> = 
+  <to:output> LITERAL_STRING_CHAR <to:output> LITERAL_STRING_CHAR_SEQ | ;
+  
+LITERAL_STRING_CHAR : TIcbArray<TCHAR> = 
+  # TODO: handle escape sequences
+  <notset> '\"\r\n' { output.Add(_input[pos0]) } ;
+
+LITERAL_INTEGER : int = 
+  { output = 0 } # this should not be necessary!
+  <to:output> LITERAL_INTEGER_DIGIT <to:output> LITERAL_INTEGER_DIGIT_SEQ ;
+  
+LITERAL_INTEGER_DIGIT : int = 
+  <set> '0123456789' { output = output * 10 + _input[pos0] - '0' } ;
+  
+LITERAL_INTEGER_DIGIT_SEQ : int = 
+  <to:output> LITERAL_INTEGER_DIGIT <to:output> LITERAL_INTEGER_DIGIT_SEQ | ;
+
+LITERAL_ARRAY : TIcbArray<CIcbScriptPtr> =
+  '[' WS ROOT { output.Add(output3) } WS <to:output> { errmsg = err007 } LITERAL_ARRAY_TAIL ; 
+   
+LITERAL_ARRAY_TAIL : TIcbArray<CIcbScriptPtr> = 
+  ',' WS ROOT { output.Add(output3) } WS <to:output> { errmsg = err007 } LITERAL_ARRAY_TAIL | 
+  ']' ; 
+
+SYMBOL : CIcbString = 
+  SYMBOL_CHAR1 SYMBOL_CHAR2_SEQ { output = CIcbString(_input + pos0, pos2 - pos0) } ;
+  
+SYMBOL_CHAR1 =
+  <range> 'az' | <range> 'AZ' | '_' ;
+  
+SYMBOL_CHAR2 = 
+  <range> 'az' | <range> 'AZ' | '_' | <range> '09' ;
+  
+SYMBOL_CHAR2_SEQ = 
+  SYMBOL_CHAR2 SYMBOL_CHAR2_SEQ | ;
+  
+### Additional Code #########################################################
+
+{
+public:
+	const WCHAR*          errmsg;
+	const CIcbScriptType* type;
+
+private:
+	static const WCHAR* err000;
+	static const WCHAR* err001;
+	static const WCHAR* err002;
+	static const WCHAR* err003;
+	static const WCHAR* err004;
+	static const WCHAR* err006;
+	static const WCHAR* err007;
+	static const WCHAR* err008;
+}
