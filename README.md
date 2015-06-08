@@ -1,2 +1,2 @@
 # rspt
- Really Simple Parser Tool
+Really Simple Parser Tool (Java)
