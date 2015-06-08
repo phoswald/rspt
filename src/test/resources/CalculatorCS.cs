@@ -101,24 +101,6 @@ public partial class CalculatorParser {
         return false;
     }
 
-    private bool nt_IDENT(ref int pos, ref string output) {
-        int pos0 = pos;
-        if(true) {
-            object output1 = default(object);
-            int pos1 = pos0;
-            if(nt_IDENTCHAR_1(ref pos1, ref output1)) {
-                object output2 = default(object);
-                int pos2 = pos1;
-                if(nt_IDENTCHARS_N(ref pos2, ref output2)) {
-                    output = new string(_input, pos0, pos2-pos0);
-                    pos = pos2;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     private bool nt_EXPRESSION_ADD(ref int pos, ref double output) {
         int pos0 = pos;
         if(true) {
@@ -127,23 +109,6 @@ public partial class CalculatorParser {
             if(nt_EXPRESSION_MUL(ref pos1, ref output1)) {
                 int pos2 = pos1;
                 if(nt_OP_ADD(ref pos2, ref output1)) {
-                    output = output1;
-                    pos = pos2;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private bool nt_EXPRESSION_MUL(ref int pos, ref double output) {
-        int pos0 = pos;
-        if(true) {
-            double output1 = default(double);
-            int pos1 = pos0;
-            if(nt_EXPRESSION_BRA(ref pos1, ref output1)) {
-                int pos2 = pos1;
-                if(nt_OP_MUL(ref pos2, ref output1)) {
                     output = output1;
                     pos = pos2;
                     return true;
@@ -191,30 +156,18 @@ public partial class CalculatorParser {
         }
     }
 
-    private bool nt_EXPRESSION_BRA(ref int pos, ref double output) {
+    private bool nt_EXPRESSION_MUL(ref int pos, ref double output) {
         int pos0 = pos;
-        if(true) {
-            int pos1 = pos0;
-            if(tc(ref pos1, '(')) {
-                double output2 = default(double);
-                int pos2 = pos1;
-                if(nt_EXPRESSION(ref pos2, ref output2)) {
-                    int pos3 = pos2;
-                    if(tc(ref pos3, ')')) {
-                        output = output2;
-                        pos = pos3;
-                        return true;
-                    }
-                }
-            }
-        }
         if(true) {
             double output1 = default(double);
             int pos1 = pos0;
-            if(nt_VALUE(ref pos1, ref output1)) {
-                output = output1;
-                pos = pos1;
-                return true;
+            if(nt_EXPRESSION_BRA(ref pos1, ref output1)) {
+                int pos2 = pos1;
+                if(nt_OP_MUL(ref pos2, ref output1)) {
+                    output = output1;
+                    pos = pos2;
+                    return true;
+                }
             }
         }
         return false;
@@ -256,6 +209,35 @@ public partial class CalculatorParser {
             pos = pos0;
             return true;
         }
+    }
+
+    private bool nt_EXPRESSION_BRA(ref int pos, ref double output) {
+        int pos0 = pos;
+        if(true) {
+            int pos1 = pos0;
+            if(tc(ref pos1, '(')) {
+                double output2 = default(double);
+                int pos2 = pos1;
+                if(nt_EXPRESSION(ref pos2, ref output2)) {
+                    int pos3 = pos2;
+                    if(tc(ref pos3, ')')) {
+                        output = output2;
+                        pos = pos3;
+                        return true;
+                    }
+                }
+            }
+        }
+        if(true) {
+            double output1 = default(double);
+            int pos1 = pos0;
+            if(nt_VALUE(ref pos1, ref output1)) {
+                output = output1;
+                pos = pos1;
+                return true;
+            }
+        }
+        return false;
     }
 
     private bool nt_VALUE(ref int pos, ref double output) {
@@ -311,15 +293,15 @@ public partial class CalculatorParser {
         return false;
     }
 
-    private bool nt_CONST(ref int pos, ref string output) {
+    private bool nt_IDENT(ref int pos, ref string output) {
         int pos0 = pos;
         if(true) {
             object output1 = default(object);
             int pos1 = pos0;
-            if(nt_DIGIT(ref pos1, ref output1)) {
+            if(nt_IDENTCHAR_1(ref pos1, ref output1)) {
                 object output2 = default(object);
                 int pos2 = pos1;
-                if(nt_DIGITS(ref pos2, ref output2)) {
+                if(nt_IDENTCHARS_N(ref pos2, ref output2)) {
                     output = new string(_input, pos0, pos2-pos0);
                     pos = pos2;
                     return true;
@@ -327,6 +309,26 @@ public partial class CalculatorParser {
             }
         }
         return false;
+    }
+
+    private bool nt_IDENTCHARS_N(ref int pos, ref object output) {
+        int pos0 = pos;
+        if(true) {
+            object output1 = default(object);
+            int pos1 = pos0;
+            if(nt_IDENTCHAR_N(ref pos1, ref output1)) {
+                object output2 = default(object);
+                int pos2 = pos1;
+                if(nt_IDENTCHARS_N(ref pos2, ref output2)) {
+                    pos = pos2;
+                    return true;
+                }
+            }
+        }
+        if(true) {
+            pos = pos0;
+            return true;
+        }
     }
 
     private bool nt_IDENTCHAR_1(ref int pos, ref object output) {
@@ -353,26 +355,6 @@ public partial class CalculatorParser {
             }
         }
         return false;
-    }
-
-    private bool nt_IDENTCHARS_N(ref int pos, ref object output) {
-        int pos0 = pos;
-        if(true) {
-            object output1 = default(object);
-            int pos1 = pos0;
-            if(nt_IDENTCHAR_N(ref pos1, ref output1)) {
-                object output2 = default(object);
-                int pos2 = pos1;
-                if(nt_IDENTCHARS_N(ref pos2, ref output2)) {
-                    pos = pos2;
-                    return true;
-                }
-            }
-        }
-        if(true) {
-            pos = pos0;
-            return true;
-        }
     }
 
     private bool nt_IDENTCHAR_N(ref int pos, ref object output) {
@@ -408,13 +390,19 @@ public partial class CalculatorParser {
         return false;
     }
 
-    private bool nt_DIGIT(ref int pos, ref object output) {
+    private bool nt_CONST(ref int pos, ref string output) {
         int pos0 = pos;
         if(true) {
+            object output1 = default(object);
             int pos1 = pos0;
-            if(trange(ref pos1, '0', '9')) {
-                pos = pos1;
-                return true;
+            if(nt_DIGIT(ref pos1, ref output1)) {
+                object output2 = default(object);
+                int pos2 = pos1;
+                if(nt_DIGITS(ref pos2, ref output2)) {
+                    output = new string(_input, pos0, pos2-pos0);
+                    pos = pos2;
+                    return true;
+                }
             }
         }
         return false;
@@ -438,6 +426,18 @@ public partial class CalculatorParser {
             pos = pos0;
             return true;
         }
+    }
+
+    private bool nt_DIGIT(ref int pos, ref object output) {
+        int pos0 = pos;
+        if(true) {
+            int pos1 = pos0;
+            if(trange(ref pos1, '0', '9')) {
+                pos = pos1;
+                return true;
+            }
+        }
+        return false;
     }
 
     private bool ts(ref int pos, char[] s) {

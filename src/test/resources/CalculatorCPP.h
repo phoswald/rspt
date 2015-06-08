@@ -107,24 +107,6 @@ private:
         return false;
     }
 
-    bool nt_IDENT(int& pos, CString& output) {
-        int pos0 = pos;
-        if(true) {
-            void* output1 /*= default(void*)*/;
-            int pos1 = pos0;
-            if(nt_IDENTCHAR_1(pos1, output1)) {
-                void* output2 /*= default(void*)*/;
-                int pos2 = pos1;
-                if(nt_IDENTCHARS_N(pos2, output2)) {
-                    output = CString(_input+pos0, pos2-pos0);
-                    pos = pos2;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     bool nt_EXPRESSION_ADD(int& pos, double& output) {
         int pos0 = pos;
         if(true) {
@@ -133,23 +115,6 @@ private:
             if(nt_EXPRESSION_MUL(pos1, output1)) {
                 int pos2 = pos1;
                 if(nt_OP_ADD(pos2, output1)) {
-                    output = output1;
-                    pos = pos2;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    bool nt_EXPRESSION_MUL(int& pos, double& output) {
-        int pos0 = pos;
-        if(true) {
-            double output1 /*= default(double)*/;
-            int pos1 = pos0;
-            if(nt_EXPRESSION_BRA(pos1, output1)) {
-                int pos2 = pos1;
-                if(nt_OP_MUL(pos2, output1)) {
                     output = output1;
                     pos = pos2;
                     return true;
@@ -197,30 +162,18 @@ private:
         }
     }
 
-    bool nt_EXPRESSION_BRA(int& pos, double& output) {
+    bool nt_EXPRESSION_MUL(int& pos, double& output) {
         int pos0 = pos;
-        if(true) {
-            int pos1 = pos0;
-            if(tc(pos1, '(')) {
-                double output2 /*= default(double)*/;
-                int pos2 = pos1;
-                if(nt_EXPRESSION(pos2, output2)) {
-                    int pos3 = pos2;
-                    if(tc(pos3, ')')) {
-                        output = output2;
-                        pos = pos3;
-                        return true;
-                    }
-                }
-            }
-        }
         if(true) {
             double output1 /*= default(double)*/;
             int pos1 = pos0;
-            if(nt_VALUE(pos1, output1)) {
-                output = output1;
-                pos = pos1;
-                return true;
+            if(nt_EXPRESSION_BRA(pos1, output1)) {
+                int pos2 = pos1;
+                if(nt_OP_MUL(pos2, output1)) {
+                    output = output1;
+                    pos = pos2;
+                    return true;
+                }
             }
         }
         return false;
@@ -262,6 +215,35 @@ private:
             pos = pos0;
             return true;
         }
+    }
+
+    bool nt_EXPRESSION_BRA(int& pos, double& output) {
+        int pos0 = pos;
+        if(true) {
+            int pos1 = pos0;
+            if(tc(pos1, '(')) {
+                double output2 /*= default(double)*/;
+                int pos2 = pos1;
+                if(nt_EXPRESSION(pos2, output2)) {
+                    int pos3 = pos2;
+                    if(tc(pos3, ')')) {
+                        output = output2;
+                        pos = pos3;
+                        return true;
+                    }
+                }
+            }
+        }
+        if(true) {
+            double output1 /*= default(double)*/;
+            int pos1 = pos0;
+            if(nt_VALUE(pos1, output1)) {
+                output = output1;
+                pos = pos1;
+                return true;
+            }
+        }
+        return false;
     }
 
     bool nt_VALUE(int& pos, double& output) {
@@ -317,15 +299,15 @@ private:
         return false;
     }
 
-    bool nt_CONST(int& pos, CString& output) {
+    bool nt_IDENT(int& pos, CString& output) {
         int pos0 = pos;
         if(true) {
             void* output1 /*= default(void*)*/;
             int pos1 = pos0;
-            if(nt_DIGIT(pos1, output1)) {
+            if(nt_IDENTCHAR_1(pos1, output1)) {
                 void* output2 /*= default(void*)*/;
                 int pos2 = pos1;
-                if(nt_DIGITS(pos2, output2)) {
+                if(nt_IDENTCHARS_N(pos2, output2)) {
                     output = CString(_input+pos0, pos2-pos0);
                     pos = pos2;
                     return true;
@@ -333,6 +315,26 @@ private:
             }
         }
         return false;
+    }
+
+    bool nt_IDENTCHARS_N(int& pos, void*& output) {
+        int pos0 = pos;
+        if(true) {
+            void* output1 /*= default(void*)*/;
+            int pos1 = pos0;
+            if(nt_IDENTCHAR_N(pos1, output1)) {
+                void* output2 /*= default(void*)*/;
+                int pos2 = pos1;
+                if(nt_IDENTCHARS_N(pos2, output2)) {
+                    pos = pos2;
+                    return true;
+                }
+            }
+        }
+        if(true) {
+            pos = pos0;
+            return true;
+        }
     }
 
     bool nt_IDENTCHAR_1(int& pos, void*& output) {
@@ -359,26 +361,6 @@ private:
             }
         }
         return false;
-    }
-
-    bool nt_IDENTCHARS_N(int& pos, void*& output) {
-        int pos0 = pos;
-        if(true) {
-            void* output1 /*= default(void*)*/;
-            int pos1 = pos0;
-            if(nt_IDENTCHAR_N(pos1, output1)) {
-                void* output2 /*= default(void*)*/;
-                int pos2 = pos1;
-                if(nt_IDENTCHARS_N(pos2, output2)) {
-                    pos = pos2;
-                    return true;
-                }
-            }
-        }
-        if(true) {
-            pos = pos0;
-            return true;
-        }
     }
 
     bool nt_IDENTCHAR_N(int& pos, void*& output) {
@@ -414,13 +396,19 @@ private:
         return false;
     }
 
-    bool nt_DIGIT(int& pos, void*& output) {
+    bool nt_CONST(int& pos, CString& output) {
         int pos0 = pos;
         if(true) {
+            void* output1 /*= default(void*)*/;
             int pos1 = pos0;
-            if(trange(pos1, '0', '9')) {
-                pos = pos1;
-                return true;
+            if(nt_DIGIT(pos1, output1)) {
+                void* output2 /*= default(void*)*/;
+                int pos2 = pos1;
+                if(nt_DIGITS(pos2, output2)) {
+                    output = CString(_input+pos0, pos2-pos0);
+                    pos = pos2;
+                    return true;
+                }
             }
         }
         return false;
@@ -444,6 +432,18 @@ private:
             pos = pos0;
             return true;
         }
+    }
+
+    bool nt_DIGIT(int& pos, void*& output) {
+        int pos0 = pos;
+        if(true) {
+            int pos1 = pos0;
+            if(trange(pos1, '0', '9')) {
+                pos = pos1;
+                return true;
+            }
+        }
+        return false;
     }
 
     bool ts(int& pos, const TCHAR* s, int slen) {

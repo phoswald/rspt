@@ -143,6 +143,7 @@ public class Grammar {
                 codes.add(symbol.substring(1, symbol.length()-1));
             } else {
                 SymbolNonTerm sym = getNonTerm(symbol);
+                nonTerms.add(sym);
                 if(exp) {
                     exports.add(sym);
                     exp = false;
@@ -190,7 +191,6 @@ public class Grammar {
         if(symbol == null) {
             symbol = new SymbolNonTerm(text);
             index.put(text, symbol);
-            nonTerms.add(symbol);
         }
         return symbol;
     }

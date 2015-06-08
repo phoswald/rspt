@@ -102,24 +102,6 @@ public class CalculatorParser {
         return false;
     }
 
-    private boolean nt_IDENT(final Ref_int pos, final Ref<String> output) {
-        final Ref_int pos0 = new Ref_int(pos.val);
-        {
-            final Ref<Object> output1 = new Ref<Object>(null);
-            final Ref_int pos1 = new Ref_int(pos0.val);
-            if(nt_IDENTCHAR_1(pos1, output1)) {
-                final Ref<Object> output2 = new Ref<Object>(null);
-                final Ref_int pos2 = new Ref_int(pos1.val);
-                if(nt_IDENTCHARS_N(pos2, output2)) {
-                    output.val = new String(_input, pos0.val, pos2.val-pos0.val);
-                    pos.val = pos2.val;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     private boolean nt_EXPRESSION_ADD(final Ref_int pos, final Ref<Double> output) {
         final Ref_int pos0 = new Ref_int(pos.val);
         {
@@ -128,23 +110,6 @@ public class CalculatorParser {
             if(nt_EXPRESSION_MUL(pos1, output1)) {
                 final Ref_int pos2 = new Ref_int(pos1.val);
                 if(nt_OP_ADD(pos2, output1)) {
-                    output.val = output1.val;
-                    pos.val = pos2.val;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean nt_EXPRESSION_MUL(final Ref_int pos, final Ref<Double> output) {
-        final Ref_int pos0 = new Ref_int(pos.val);
-        {
-            final Ref<Double> output1 = new Ref<Double>(null);
-            final Ref_int pos1 = new Ref_int(pos0.val);
-            if(nt_EXPRESSION_BRA(pos1, output1)) {
-                final Ref_int pos2 = new Ref_int(pos1.val);
-                if(nt_OP_MUL(pos2, output1)) {
                     output.val = output1.val;
                     pos.val = pos2.val;
                     return true;
@@ -192,30 +157,18 @@ public class CalculatorParser {
         }
     }
 
-    private boolean nt_EXPRESSION_BRA(final Ref_int pos, final Ref<Double> output) {
+    private boolean nt_EXPRESSION_MUL(final Ref_int pos, final Ref<Double> output) {
         final Ref_int pos0 = new Ref_int(pos.val);
-        {
-            final Ref_int pos1 = new Ref_int(pos0.val);
-            if(tc(pos1, '(')) {
-                final Ref<Double> output2 = new Ref<Double>(null);
-                final Ref_int pos2 = new Ref_int(pos1.val);
-                if(nt_EXPRESSION(pos2, output2)) {
-                    final Ref_int pos3 = new Ref_int(pos2.val);
-                    if(tc(pos3, ')')) {
-                        output.val = output2.val;
-                        pos.val = pos3.val;
-                        return true;
-                    }
-                }
-            }
-        }
         {
             final Ref<Double> output1 = new Ref<Double>(null);
             final Ref_int pos1 = new Ref_int(pos0.val);
-            if(nt_VALUE(pos1, output1)) {
-                output.val = output1.val;
-                pos.val = pos1.val;
-                return true;
+            if(nt_EXPRESSION_BRA(pos1, output1)) {
+                final Ref_int pos2 = new Ref_int(pos1.val);
+                if(nt_OP_MUL(pos2, output1)) {
+                    output.val = output1.val;
+                    pos.val = pos2.val;
+                    return true;
+                }
             }
         }
         return false;
@@ -257,6 +210,35 @@ public class CalculatorParser {
             pos.val = pos0.val;
             return true;
         }
+    }
+
+    private boolean nt_EXPRESSION_BRA(final Ref_int pos, final Ref<Double> output) {
+        final Ref_int pos0 = new Ref_int(pos.val);
+        {
+            final Ref_int pos1 = new Ref_int(pos0.val);
+            if(tc(pos1, '(')) {
+                final Ref<Double> output2 = new Ref<Double>(null);
+                final Ref_int pos2 = new Ref_int(pos1.val);
+                if(nt_EXPRESSION(pos2, output2)) {
+                    final Ref_int pos3 = new Ref_int(pos2.val);
+                    if(tc(pos3, ')')) {
+                        output.val = output2.val;
+                        pos.val = pos3.val;
+                        return true;
+                    }
+                }
+            }
+        }
+        {
+            final Ref<Double> output1 = new Ref<Double>(null);
+            final Ref_int pos1 = new Ref_int(pos0.val);
+            if(nt_VALUE(pos1, output1)) {
+                output.val = output1.val;
+                pos.val = pos1.val;
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean nt_VALUE(final Ref_int pos, final Ref<Double> output) {
@@ -312,15 +294,15 @@ public class CalculatorParser {
         return false;
     }
 
-    private boolean nt_CONST(final Ref_int pos, final Ref<String> output) {
+    private boolean nt_IDENT(final Ref_int pos, final Ref<String> output) {
         final Ref_int pos0 = new Ref_int(pos.val);
         {
             final Ref<Object> output1 = new Ref<Object>(null);
             final Ref_int pos1 = new Ref_int(pos0.val);
-            if(nt_DIGIT(pos1, output1)) {
+            if(nt_IDENTCHAR_1(pos1, output1)) {
                 final Ref<Object> output2 = new Ref<Object>(null);
                 final Ref_int pos2 = new Ref_int(pos1.val);
-                if(nt_DIGITS(pos2, output2)) {
+                if(nt_IDENTCHARS_N(pos2, output2)) {
                     output.val = new String(_input, pos0.val, pos2.val-pos0.val);
                     pos.val = pos2.val;
                     return true;
@@ -328,6 +310,26 @@ public class CalculatorParser {
             }
         }
         return false;
+    }
+
+    private boolean nt_IDENTCHARS_N(final Ref_int pos, final Ref<Object> output) {
+        final Ref_int pos0 = new Ref_int(pos.val);
+        {
+            final Ref<Object> output1 = new Ref<Object>(null);
+            final Ref_int pos1 = new Ref_int(pos0.val);
+            if(nt_IDENTCHAR_N(pos1, output1)) {
+                final Ref<Object> output2 = new Ref<Object>(null);
+                final Ref_int pos2 = new Ref_int(pos1.val);
+                if(nt_IDENTCHARS_N(pos2, output2)) {
+                    pos.val = pos2.val;
+                    return true;
+                }
+            }
+        }
+        {
+            pos.val = pos0.val;
+            return true;
+        }
     }
 
     private boolean nt_IDENTCHAR_1(final Ref_int pos, final Ref<Object> output) {
@@ -354,26 +356,6 @@ public class CalculatorParser {
             }
         }
         return false;
-    }
-
-    private boolean nt_IDENTCHARS_N(final Ref_int pos, final Ref<Object> output) {
-        final Ref_int pos0 = new Ref_int(pos.val);
-        {
-            final Ref<Object> output1 = new Ref<Object>(null);
-            final Ref_int pos1 = new Ref_int(pos0.val);
-            if(nt_IDENTCHAR_N(pos1, output1)) {
-                final Ref<Object> output2 = new Ref<Object>(null);
-                final Ref_int pos2 = new Ref_int(pos1.val);
-                if(nt_IDENTCHARS_N(pos2, output2)) {
-                    pos.val = pos2.val;
-                    return true;
-                }
-            }
-        }
-        {
-            pos.val = pos0.val;
-            return true;
-        }
     }
 
     private boolean nt_IDENTCHAR_N(final Ref_int pos, final Ref<Object> output) {
@@ -409,13 +391,19 @@ public class CalculatorParser {
         return false;
     }
 
-    private boolean nt_DIGIT(final Ref_int pos, final Ref<Object> output) {
+    private boolean nt_CONST(final Ref_int pos, final Ref<String> output) {
         final Ref_int pos0 = new Ref_int(pos.val);
         {
+            final Ref<Object> output1 = new Ref<Object>(null);
             final Ref_int pos1 = new Ref_int(pos0.val);
-            if(trange(pos1, '0', '9')) {
-                pos.val = pos1.val;
-                return true;
+            if(nt_DIGIT(pos1, output1)) {
+                final Ref<Object> output2 = new Ref<Object>(null);
+                final Ref_int pos2 = new Ref_int(pos1.val);
+                if(nt_DIGITS(pos2, output2)) {
+                    output.val = new String(_input, pos0.val, pos2.val-pos0.val);
+                    pos.val = pos2.val;
+                    return true;
+                }
             }
         }
         return false;
@@ -439,6 +427,18 @@ public class CalculatorParser {
             pos.val = pos0.val;
             return true;
         }
+    }
+
+    private boolean nt_DIGIT(final Ref_int pos, final Ref<Object> output) {
+        final Ref_int pos0 = new Ref_int(pos.val);
+        {
+            final Ref_int pos1 = new Ref_int(pos0.val);
+            if(trange(pos1, '0', '9')) {
+                pos.val = pos1.val;
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean ts(final Ref_int pos, char[] s) {
