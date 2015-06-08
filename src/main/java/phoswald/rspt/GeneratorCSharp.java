@@ -12,15 +12,15 @@ public class GeneratorCSharp extends Generator {
 
     @Override
     public void generate(Writer writer) throws IOException, SyntaxException {
-        if(grammar.clazz == null) {
-            grammar.clazz = "Parser";
+        if(grammar.getParser() == null) {
+            grammar.setParser("Parser");
         }
-        if(grammar.type == null) {
-            grammar.type = "char";
+        if(grammar.getCharacter() == null) {
+            grammar.setCharacter("char");
         }
-        for(SymbolNonTerm sym : grammar.nonTerms) {
-            if(sym.type == null) {
-                sym.type = "object";
+        for(SymbolNonTerm sym : grammar.getSymbols()) {
+            if(sym.getType() == null) {
+                sym.setType("object");
             }
         }
         writeLine(writer, "//");
@@ -28,26 +28,26 @@ public class GeneratorCSharp extends Generator {
         writeLine(writer, "//       Do not modify the contents of this file as it will be overwritten!");
         writeLine(writer, "//");
         writeLine(writer, "using System;");
-        for(String include : grammar.includes) {
+        for(String include : grammar.getIncludes()) {
             writeLine(writer, "using " + include + ";");
         }
-        if(grammar.namespace != null) {
+        if(grammar.getNamespace() != null) {
             writeLine(writer, "");
-            writeLine(writer, "namespace " + grammar.namespace + " {");
+            writeLine(writer, "namespace " + grammar.getNamespace() + " {");
         }
         writeLine(writer, "");
-        writeLine(writer, "public partial class " + grammar.clazz + " {");
+        writeLine(writer, "public partial class " + grammar.getParser() + " {");
         writeLine(writer, "");
-        writeLine(writer, "    private " + grammar.type + "[] _input;");
+        writeLine(writer, "    private " + grammar.getCharacter() + "[] _input;");
         writeLine(writer, "");
-        writeLine(writer, "    public " + grammar.clazz + "() { }");
-        for(SymbolNonTerm sym : grammar.exports) {
+        writeLine(writer, "    public " + grammar.getParser() + "() { }");
+        for(SymbolNonTerm sym : grammar.getExports()) {
             writeLine(writer, "");
-            writeLine(writer, "    public bool Parse_" + sym.name() + "(" + grammar.type + "[] input, out " + sym.type + " output, out int pos) {");
+            writeLine(writer, "    public bool Parse_" + sym.getName() + "(" + grammar.getCharacter() + "[] input, out " + sym.getType() + " output, out int pos) {");
             writeLine(writer, "        _input = input;");
             writeLine(writer, "        pos    = 0;");
-            writeLine(writer, "        output = default(" + sym.type + ");");
-            writeLine(writer, "        return nt_" + sym.name() + "(ref pos, ref output) && pos == _input.Length;");
+            writeLine(writer, "        output = default(" + sym.getType() + ");");
+            writeLine(writer, "        return nt_" + sym.getName() + "(ref pos, ref output) && pos == _input.Length;");
             writeLine(writer, "    }");
         }
         boolean need_ts      = false;
@@ -55,12 +55,12 @@ public class GeneratorCSharp extends Generator {
         boolean need_tset    = false;
         boolean need_trange  = false;
         boolean need_tnotset = false;
-        for(SymbolNonTerm sym : grammar.nonTerms) {
+        for(SymbolNonTerm sym : grammar.getSymbols()) {
             boolean emptyclause = false;
             writeLine(writer, "");
-            writeLine(writer, "    private bool nt_" + sym.name() + "(ref int pos, ref " + sym.type + " output) {");
+            writeLine(writer, "    private bool nt_" + sym.getName() + "(ref int pos, ref " + sym.getType() + " output) {");
             writeLine(writer, "        int pos0 = pos;");
-            for(List<Symbol> rule : sym.rules) {
+            for(List<Symbol> rule : sym.getRules()) {
                 writeLine(writer, "        if(true) {");
                 int     idx = 1;
                 String  ins_to     = null;
@@ -72,10 +72,10 @@ public class GeneratorCSharp extends Generator {
                         SymbolNonTerm sym2nt = (SymbolNonTerm) sym2;
                         if(ins_to == null) {
                             ins_to = "output"+idx;
-                            writeLine(writer, "        " + indent + "    " + sym2nt.type + " " + ins_to + " = default(" + sym2nt.type + ");");
+                            writeLine(writer, "        " + indent + "    " + sym2nt.getType() + " " + ins_to + " = default(" + sym2nt.getType() + ");");
                         }
                         writeLine(writer, "        " + indent + "    int pos" + idx + " = pos" + (idx-1) + ";");
-                        writeLine(writer, "        " + indent + "    if(nt_" + sym2nt.name() + "(ref pos" + idx + ", ref " + ins_to + ")) {");
+                        writeLine(writer, "        " + indent + "    if(nt_" + sym2nt.getName() + "(ref pos" + idx + ", ref " + ins_to + ")) {");
                         idx++;
                         indent(4);
                         ins_to = null;
@@ -137,8 +137,8 @@ public class GeneratorCSharp extends Generator {
         }
         if(need_ts) {
             writeLine(writer, "");
-            writeLine(writer, "    private bool ts(ref int pos, " + grammar.type + "[] s) {");
-            writeLine(writer, "        foreach(" + grammar.type + " c in s) {");
+            writeLine(writer, "    private bool ts(ref int pos, " + grammar.getCharacter() + "[] s) {");
+            writeLine(writer, "        foreach(" + grammar.getCharacter() + " c in s) {");
             writeLine(writer, "            if(pos >= _input.Length || _input[pos] != c) return false;");
             writeLine(writer, "            pos++;");
             writeLine(writer, "        }");
@@ -147,7 +147,7 @@ public class GeneratorCSharp extends Generator {
         }
         if(need_tc) {
             writeLine(writer, "");
-            writeLine(writer, "    private bool tc(ref int pos, " + grammar.type + " c) {");
+            writeLine(writer, "    private bool tc(ref int pos, " + grammar.getCharacter() + " c) {");
             writeLine(writer, "        if(pos >= _input.Length || _input[pos] != c) return false;");
             writeLine(writer, "        pos++;");
             writeLine(writer, "        return true;");
@@ -155,7 +155,7 @@ public class GeneratorCSharp extends Generator {
         }
         if(need_tset) {
             writeLine(writer, "");
-            writeLine(writer, "    private bool tset(ref int pos, " + grammar.type + "[] s) {");
+            writeLine(writer, "    private bool tset(ref int pos, " + grammar.getCharacter() + "[] s) {");
             writeLine(writer, "        for(int i = 0; i < s.Length; i++) {");
             writeLine(writer, "            if(pos < _input.Length && s[i] == _input[pos]) {");
             writeLine(writer, "                pos++;");
@@ -167,7 +167,7 @@ public class GeneratorCSharp extends Generator {
         }
         if(need_trange) {
             writeLine(writer, "");
-            writeLine(writer, "    private bool trange(ref int pos, " + grammar.type + " c1, " + grammar.type + " c2) {");
+            writeLine(writer, "    private bool trange(ref int pos, " + grammar.getCharacter() + " c1, " + grammar.getCharacter() + " c2) {");
             writeLine(writer, "        if(pos >= _input.Length || _input[pos] < c1 || _input[pos] > c2) return false;");
             writeLine(writer, "        pos++;");
             writeLine(writer, "        return true;");
@@ -175,7 +175,7 @@ public class GeneratorCSharp extends Generator {
         }
         if(need_tnotset) {
             writeLine(writer, "");
-            writeLine(writer, "    private bool tnotset(ref int pos, " + grammar.type + "[] s) {");
+            writeLine(writer, "    private bool tnotset(ref int pos, " + grammar.getCharacter() + "[] s) {");
             writeLine(writer, "        for(int i = 0; i < s.Length; i++) {");
             writeLine(writer, "            if(pos >= _input.Length || s[i] == _input[pos]) {");
             writeLine(writer, "                return false;");
@@ -186,11 +186,11 @@ public class GeneratorCSharp extends Generator {
             writeLine(writer, "    }");
         }
         writeLine(writer, "");
-        for(String code : grammar.codes) {
+        for(String code : grammar.getCodes()) {
             writeLine(writer, "    " + code + "");
         }
         writeLine(writer, "}");
-        if(grammar.namespace != null) {
+        if(grammar.getNamespace() != null) {
             writeLine(writer, "}");
         }
     }

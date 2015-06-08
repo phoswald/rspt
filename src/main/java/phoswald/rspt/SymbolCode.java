@@ -1,7 +1,7 @@
 package phoswald.rspt;
 
 /**
- * A source code fragment of the target language.
+ * A source code fragment to be included into the parser class.
  */
 public class SymbolCode extends Symbol {
 

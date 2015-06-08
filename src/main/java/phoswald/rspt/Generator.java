@@ -46,7 +46,7 @@ public abstract class Generator {
 
     protected void writeLine(Writer writer, String line) throws IOException {
         writer.write(line);
-        writer.write('\r'); // TODO: Windows or UNIX style line feeds?
+        writer.write('\r');
         writer.write('\n');
     }
 

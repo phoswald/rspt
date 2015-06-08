@@ -3,6 +3,7 @@ package phoswald.rspt;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,40 +11,76 @@ import java.util.Stack;
 
 public class Grammar {
 
-    public final Map<String, SymbolNonTerm> index = new HashMap<>();
+    /**
+     * The package or namespace of the parser class.
+     */
+    private String namespace;
 
-    public final List<SymbolNonTerm> nonTerms = new ArrayList<>();
+    /**
+     * The class name of the parser class.
+     */
+    private String parser;
 
-    public final List<SymbolNonTerm> exports = new ArrayList<>();
+    /**
+     * The type or class name of the input characters (i.e. character, byte, etc).
+     */
+    private String character;
 
     /**
      * A list of Java package import, C++ include or C# using directives.
      */
-    public final List<String> includes = new ArrayList<>();
+    private final List<String> includes = new ArrayList<>();
 
     /**
-     * The package or namespace of the parser class.
+     * A list of source code fragments to be included into the parser class.
      */
-    public String namespace;
+    private final List<String> codes = new ArrayList<>();
 
-    /**
-     * The name of the parser class.
-     */
-    public String clazz;
+    private final Map<String, SymbolNonTerm> index = new HashMap<>();
 
-    /**
-     * The type of the input symbols (i.e. character, byte, etc).
-     */
-    public String type;
+    private final List<SymbolNonTerm> exports = new ArrayList<>();
 
-    /**
-     * A list of source code fragments of the target language.
-     */
-    public final List<String> codes = new ArrayList<>();
+    private final List<SymbolNonTerm> symbols = new ArrayList<>();
 
     public Grammar(Reader reader) throws IOException, SyntaxException {
         List<String> tokens = tokenize(reader);
         parse(tokens);
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public String getParser() {
+        return parser;
+    }
+
+    public void setParser(String parser) {
+        this.parser = parser;
+    }
+
+    public String getCharacter() {
+        return character;
+    }
+
+    public void setCharacter(String character) {
+        this.character = character;
+    }
+
+    public List<String> getIncludes() {
+        return Collections.unmodifiableList(includes);
+    }
+
+    public List<String> getCodes() {
+        return Collections.unmodifiableList(codes);
+    }
+
+    public List<SymbolNonTerm> getExports() {
+        return Collections.unmodifiableList(exports);
+    }
+
+    public List<SymbolNonTerm> getSymbols() {
+        return Collections.unmodifiableList(symbols);
     }
 
     private static List<String> tokenize(Reader reader) throws IOException, SyntaxException {
@@ -130,74 +167,74 @@ public class Grammar {
         int pos = 0;
         boolean exp = false;
         while(pos < tokens.size()) {
-            String symbol = tokens.get(pos);
-            if(symbol.equals("<export>")) {
+            String token = tokens.get(pos);
+            if(token.equals("<export>")) {
                 exp = true;
-            } else if(symbol.startsWith("<include:") && symbol.charAt(symbol.length()-1) == '>') {
-                includes.add(symbol.substring(9, symbol.length()-1));
-            } else if(symbol.startsWith("<namespace:") && symbol.charAt(symbol.length()-1) == '>') {
-                namespace = symbol.substring(11, symbol.length()-1);
-            } else if(symbol.startsWith("<class:") && symbol.charAt(symbol.length()-1) == '>') {
-                clazz = symbol.substring(7, symbol.length()-1);
-            } else if(symbol.length() > 2 && symbol.charAt(0) == '{' && symbol.charAt(symbol.length()-1) == '}') {
-                codes.add(symbol.substring(1, symbol.length()-1));
+            } else if(token.startsWith("<include:") && token.charAt(token.length()-1) == '>') {
+                includes.add(token.substring(9, token.length()-1));
+            } else if(token.startsWith("<namespace:") && token.charAt(token.length()-1) == '>') {
+                namespace = token.substring(11, token.length()-1);
+            } else if(token.startsWith("<class:") && token.charAt(token.length()-1) == '>') {
+                parser = token.substring(7, token.length()-1);
+            } else if(token.length() > 2 && token.charAt(0) == '{' && token.charAt(token.length()-1) == '}') {
+                codes.add(token.substring(1, token.length()-1));
             } else {
-                SymbolNonTerm sym = getNonTerm(symbol);
-                nonTerms.add(sym);
+                SymbolNonTerm symbol = getSymbol(token);
+                symbols.add(symbol);
                 if(exp) {
-                    exports.add(sym);
+                    exports.add(symbol);
                     exp = false;
                 }
                 pos++;
                 if(tokens.get(pos).equals(":")) {
-                   sym.type = tokens.get(pos+1);
+                   symbol.setType(tokens.get(pos+1));
                    pos+=2;
                 }
                 if(!tokens.get(pos).equals("=")) {
-                    throw new SyntaxException(sym.name() + ": Unexptected token '" + tokens.get(pos) + "'. Exptected: '='.");
+                    throw new SyntaxException(symbol.getName() + ": Unexptected token '" + tokens.get(pos) + "'. Exptected: '='.");
                 }
                 do {
-                    symbol = tokens.get(++pos);
+                    token = tokens.get(++pos);
                     List<Symbol> rule = new ArrayList<>();
-                    sym.rules.add(rule);
-                    while(!symbol.equals("|") && !symbol.equals(";")) {
-                        if(symbol.length() >= 2 && symbol.charAt(0) == '\'' && symbol.charAt(symbol.length()-1) == '\'') {
-                            rule.add(new SymbolTerm(symbol));
-                        } else if(symbol.length() > 2 && symbol.charAt(0) == '{' && symbol.charAt(symbol.length()-1) == '}') {
-                            rule.add(new SymbolCode(symbol));
-                        } else if(symbol.length() > 2 && symbol.charAt(0) == '<' && symbol.charAt(symbol.length()-1) == '>') {
-                            rule.add(new SymbolInstr(symbol));
+                    symbol.addRule(rule);
+                    while(!token.equals("|") && !token.equals(";")) {
+                        if(token.length() >= 2 && token.charAt(0) == '\'' && token.charAt(token.length()-1) == '\'') {
+                            rule.add(new SymbolTerm(token));
+                        } else if(token.length() > 2 && token.charAt(0) == '{' && token.charAt(token.length()-1) == '}') {
+                            rule.add(new SymbolCode(token));
+                        } else if(token.length() > 2 && token.charAt(0) == '<' && token.charAt(token.length()-1) == '>') {
+                            rule.add(new SymbolInstr(token));
                         } else {
-                            rule.add(getNonTerm(symbol));
+                            rule.add(getSymbol(token));
                         }
-                        symbol = tokens.get(++pos);
+                        token = tokens.get(++pos);
                     }
-                } while(!symbol.equals(";"));
+                } while(!token.equals(";"));
             }
             pos++;
         }
-        for(SymbolNonTerm sym : nonTerms) {
-            if(sym.rules.size() == 0) {
-                throw new SyntaxException(sym.name() + ": Symbol is used but not defined.");
+        for(SymbolNonTerm symbol : symbols) {
+            if(symbol.getRules().size() == 0) {
+                throw new SyntaxException(symbol.getName() + ": Symbol is used but not defined.");
             }
         }
     }
 
-    private SymbolNonTerm getNonTerm(String text) throws SyntaxException {
-        if(!isIdent(text)) {
-            throw new SyntaxException("Invalid non terminal symbol name '" + text + "'.");
+    private SymbolNonTerm getSymbol(String token) throws SyntaxException {
+        if(!isIdent(token)) {
+            throw new SyntaxException("Invalid non terminal symbol name '" + token + "'.");
         }
-        SymbolNonTerm symbol = index.get(text);
+        SymbolNonTerm symbol = index.get(token);
         if(symbol == null) {
-            symbol = new SymbolNonTerm(text);
-            index.put(text, symbol);
+            symbol = new SymbolNonTerm(token);
+            index.put(token, symbol);
         }
         return symbol;
     }
 
-    private boolean isIdent(String text) {
+    private boolean isIdent(String token) {
         boolean first = true;
-        for(char c : text.toCharArray()) {
+        for(char c : token.toCharArray()) {
             if(!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_') || (!first && c >= '0' && c <= '9'))) {
                 return false;
             }

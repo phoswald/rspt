@@ -12,15 +12,15 @@ public class GeneratorCPlusPlus extends Generator {
 
     @Override
     public void generate(Writer writer) throws IOException, SyntaxException {
-        if(grammar.clazz == null) {
-            grammar.clazz = "CParser";
+        if(grammar.getParser() == null) {
+            grammar.setParser("CParser");
         }
-        if(grammar.type == null) {
-            grammar.type = "TCHAR";
+        if(grammar.getCharacter() == null) {
+            grammar.setCharacter("TCHAR");
         }
-        for(SymbolNonTerm sym : grammar.nonTerms) {
-            if(sym.type == null) {
-                sym.type = "void*";
+        for(SymbolNonTerm sym : grammar.getSymbols()) {
+            if(sym.getType() == null) {
+                sym.setType("void*");
             }
         }
         writeLine(writer, "//");
@@ -28,30 +28,30 @@ public class GeneratorCPlusPlus extends Generator {
         writeLine(writer, "//       Do not modify the contents of this file as it will be overwritten!");
         writeLine(writer, "//");
         writeLine(writer, "#pragma once;");
-        for(String include : grammar.includes) {
+        for(String include : grammar.getIncludes()) {
             writeLine(writer, "#include " + include + "");
         }
-        if(grammar.namespace != null) {
+        if(grammar.getNamespace() != null) {
             writeLine(writer, "");
-            writeLine(writer, "namespace " + grammar.namespace + " {");
+            writeLine(writer, "namespace " + grammar.getNamespace() + " {");
         }
         writeLine(writer, "");
-        writeLine(writer, "class " + grammar.clazz + "");
+        writeLine(writer, "class " + grammar.getParser() + "");
         writeLine(writer, "{");
         writeLine(writer, "private:");
-        writeLine(writer, "    const " + grammar.type + "* _input;");
+        writeLine(writer, "    const " + grammar.getCharacter() + "* _input;");
         writeLine(writer, "    int _size;");
         writeLine(writer, "");
         writeLine(writer, "public:");
-        writeLine(writer, "    " + grammar.clazz + "() : _input(NULL), _size(0) { }");
-        for(SymbolNonTerm sym : grammar.exports) {
+        writeLine(writer, "    " + grammar.getParser() + "() : _input(NULL), _size(0) { }");
+        for(SymbolNonTerm sym : grammar.getExports()) {
             writeLine(writer, "");
-            writeLine(writer, "    bool Parse_" + sym.name() + "(const " + grammar.type + "* input, int size, " + sym.type + "& output, int& pos) {");
+            writeLine(writer, "    bool Parse_" + sym.getName() + "(const " + grammar.getCharacter() + "* input, int size, " + sym.getType() + "& output, int& pos) {");
             writeLine(writer, "        _input = input;");
             writeLine(writer, "        _size  = size;");
             writeLine(writer, "        pos    = 0;");
-            writeLine(writer, "        /*output = default(" + sym.type + ");*/"); // TODO: fix init
-            writeLine(writer, "        return nt_" + sym.name() + "(pos, output) && pos == _size;");
+            writeLine(writer, "        /*output = default(" + sym.getType() + ");*/"); // TODO: fix init
+            writeLine(writer, "        return nt_" + sym.getName() + "(pos, output) && pos == _size;");
             writeLine(writer, "    }");
         }
         writeLine(writer, "");
@@ -61,11 +61,11 @@ public class GeneratorCPlusPlus extends Generator {
         boolean need_tset    = false;
         boolean need_trange  = false;
         boolean need_tnotset = false;
-        for(SymbolNonTerm sym : grammar.nonTerms) {
+        for(SymbolNonTerm sym : grammar.getSymbols()) {
             boolean emptyclause = false;
-            writeLine(writer, "    bool nt_" + sym.name() + "(int& pos, " + sym.type + "& output) {");
+            writeLine(writer, "    bool nt_" + sym.getName() + "(int& pos, " + sym.getType() + "& output) {");
             writeLine(writer, "        int pos0 = pos;");
-            for(List<Symbol> rule : sym.rules) {
+            for(List<Symbol> rule : sym.getRules()) {
                 writeLine(writer, "        if(true) {");
                 int     idx = 1;
                 String  ins_to     = null;
@@ -77,10 +77,10 @@ public class GeneratorCPlusPlus extends Generator {
                         SymbolNonTerm sym2nt = (SymbolNonTerm) sym2;
                         if(ins_to == null) {
                             ins_to = "output"+idx;
-                            writeLine(writer, "        " + indent + "    " + sym2nt.type + " " + ins_to + " /*= default(" + sym2nt.type + ")*/;"); // TODO: fix init
+                            writeLine(writer, "        " + indent + "    " + sym2nt.getType() + " " + ins_to + " /*= default(" + sym2nt.getType() + ")*/;"); // TODO: fix init
                         }
                         writeLine(writer, "        " + indent + "    int pos" + idx + " = pos" + (idx-1) + ";");
-                        writeLine(writer, "        " + indent + "    if(nt_" + sym2nt.name() + "(pos" + idx + ", " + ins_to + ")) {");
+                        writeLine(writer, "        " + indent + "    if(nt_" + sym2nt.getName() + "(pos" + idx + ", " + ins_to + ")) {");
                         idx++;
                         indent(4);
                         ins_to = null;
@@ -142,7 +142,7 @@ public class GeneratorCPlusPlus extends Generator {
             writeLine(writer, "");
         }
         if(need_ts) {
-            writeLine(writer, "    bool ts(int& pos, const " + grammar.type + "* s, int slen) {");
+            writeLine(writer, "    bool ts(int& pos, const " + grammar.getCharacter() + "* s, int slen) {");
             writeLine(writer, "        for(int i = 0; i < slen; i++) {");
             writeLine(writer, "            if(pos >= _size || _input[pos] != s[i]) return false;");
             writeLine(writer, "            pos++;");
@@ -152,7 +152,7 @@ public class GeneratorCPlusPlus extends Generator {
             writeLine(writer, "");
         }
         if(need_tc) {
-            writeLine(writer, "    bool tc(int& pos, " + grammar.type + " c) {");
+            writeLine(writer, "    bool tc(int& pos, " + grammar.getCharacter() + " c) {");
             writeLine(writer, "        if(pos >= _size || _input[pos] != c) return false;");
             writeLine(writer, "        pos++;");
             writeLine(writer, "        return true;");
@@ -160,7 +160,7 @@ public class GeneratorCPlusPlus extends Generator {
             writeLine(writer, "");
         }
         if(need_tset) {
-            writeLine(writer, "    bool tset(int& pos, const " + grammar.type + "* s, int slen) {");
+            writeLine(writer, "    bool tset(int& pos, const " + grammar.getCharacter() + "* s, int slen) {");
             writeLine(writer, "        for(int i = 0; i < slen; i++) {");
             writeLine(writer, "            if(pos < _size && s[i] == _input[pos]) {");
             writeLine(writer, "                pos++;");
@@ -172,7 +172,7 @@ public class GeneratorCPlusPlus extends Generator {
             writeLine(writer, "");
         }
         if(need_trange) {
-            writeLine(writer, "    bool trange(int& pos, " + grammar.type + " c1, " + grammar.type + " c2) {");
+            writeLine(writer, "    bool trange(int& pos, " + grammar.getCharacter() + " c1, " + grammar.getCharacter() + " c2) {");
             writeLine(writer, "        if(pos >= _size || _input[pos] < c1 || _input[pos] > c2) return false;");
             writeLine(writer, "        pos++;");
             writeLine(writer, "        return true;");
@@ -180,7 +180,7 @@ public class GeneratorCPlusPlus extends Generator {
             writeLine(writer, "");
         }
         if(need_tnotset) {
-            writeLine(writer, "    bool tnotset(int& pos, const " + grammar.type + "* s, int slen) {");
+            writeLine(writer, "    bool tnotset(int& pos, const " + grammar.getCharacter() + "* s, int slen) {");
             writeLine(writer, "        for(int i = 0; i < slen; i++) {");
             writeLine(writer, "            if(pos >= _size || s[i] == _input[pos]) {");
             writeLine(writer, "                return false;");
@@ -191,11 +191,11 @@ public class GeneratorCPlusPlus extends Generator {
             writeLine(writer, "    }");
             writeLine(writer, "");
         }
-        for(String code : grammar.codes) {
+        for(String code : grammar.getCodes()) {
             writeLine(writer, "    " + code + "");
         }
         writeLine(writer, "};");
-        if(grammar.namespace != null) {
+        if(grammar.getNamespace() != null) {
             writeLine(writer, "}");
         }
     }
