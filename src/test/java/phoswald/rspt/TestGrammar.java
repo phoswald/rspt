@@ -61,6 +61,6 @@ public class TestGrammar {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         bytes.write(new byte[] { (byte) 0xFF, (byte) 0xFE });
         bytes.write(" <export> ROOT = '\u20ACuro' | 'bar' ;".getBytes(StandardCharsets.UTF_16LE));
-        Grammar grammar = new Grammar(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bytes.toByteArray()), cs)));
+        new Grammar(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bytes.toByteArray()), cs)));
     }
 }
