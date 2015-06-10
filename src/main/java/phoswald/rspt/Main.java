@@ -106,6 +106,10 @@ public class Main {
     }
 
     private static String readToEnd(Reader stream) throws IOException {
+        stream.mark(1);
+        if(stream.read() != 0xFEFF) {
+            stream.reset();
+        }
         StringBuilder builder = new StringBuilder();
         int c;
         while((c = stream.read()) != -1) {

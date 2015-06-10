@@ -15,11 +15,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class TestGrammar {
 
     private static final Charset cs = StandardCharsets.UTF_8;
+
+    @Before
+    public void prepare() throws IOException {
+        Files.createDirectories(Paths.get("target", "test-output"));
+    }
 
     @Test
     public void testCompilerSettings() {

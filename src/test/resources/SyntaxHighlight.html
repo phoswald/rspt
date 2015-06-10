@@ -1,0 +1,71 @@
+<html><body><pre><b>using</b> <u>System</u>;
+<b>using</b> <u>System</u>.<u>Collections</u>.<u>Generic</u>;
+
+<b>namespace</b> <u>RSPT</u>
+{
+    <b>public</b> <u>abstract</u> <b>class</b> <u>Symbol</u> { <font color='green'><i>/* base class for NTS and TS and other special symbols */</i></font>
+
+        <b>public</b> <b>readonly</b> <u>string</u> <u>Token</u>;
+
+        <u>protected</u> <u>Symbol</u>(<u>string</u> <u>token</u>) {
+            <u>Token</u> = <u>token</u>;
+        }
+    }
+
+    <b>public</b> <b>class</b> <u>SymbolNonTerm</u> : <u>Symbol</u> { <font color='green'><i>/* a NTS is defined by a set of rules */</i></font>
+
+        <b>public</b> <b>readonly</b> <u>List</u><<u>List</u><<u>Symbol</u>>> <u>Rules</u> = <u>new</u> <u>List</u><<u>List</u><<u>Symbol</u>>>();
+        <b>public</b> <u>string</u>                      <u>Type</u>; /* <u>C</u>++ <u>or</u> <u>C</u># <u>type</u> <b>for</b> <u>output</u> 
+
+        <b>public</b> <u>SymbolNonTerm</u>(<u>string</u> <u>token</u>) : <u>base</u>(<u>token</u>) { }
+
+        <b>public</b> <u>string</u> <u>Name</u> { 
+            <u>get</u> { <b>return</b> <u>Token</u>; }
+        }
+    }
+
+    <b>public</b> <b>class</b> <u>SymbolTerm</u> : <u>Symbol</u> { <font color='green'><i>/* a TS is a sequence of input */</i></font> <u>symbols</u> 
+
+        <b>public</b> <u>SymbolTerm</u>(<u>string</u> <u>token</u>) : <u>base</u>(<u>token</u>) { }
+
+        <b>public</b> <u>string</u> <u>Text</u> { 
+            <u>get</u> { <b>return</b> <u>Token</u>.<u>Substring</u>(1, <u>Token</u>.<u>Length</u>-2); }
+        }
+    }
+
+    <b>public</b> <b>class</b> <u>SymbolCode</u> : <u>Symbol</u> { <font color='green'><i>/* a C++ or C# source code fragment */</i></font>
+
+        <b>public</b> <u>SymbolCode</u>(<u>string</u> <u>token</u>) : <u>base</u>(<u>token</u>) { }
+    
+        <b>public</b> <u>string</u> <u>Code</u> { 
+            <u>get</u> { <b>return</b> <u>Token</u>.<u>Substring</u>(1, <u>Token</u>.<u>Length</u>-2).<u>Trim</u>(' '); }
+        }
+    }
+
+    <b>public</b> <b>class</b> <u>SymbolInstr</u> : <u>Symbol</u> { <font color='green'><i>/* an instruction modifes the following TS or NTS */</i></font>
+
+        <b>public</b> <u>SymbolInstr</u>(<u>string</u> <u>token</u>) : <u>base</u>(<u>token</u>) { }
+
+        <b>public</b> <u>Instruction</u> <u>Instruction</u> {
+            <u>get</u> { 
+                <b>if</b>(<u>Token</u>.<u>Substring</u>(1, 3)              == <font color='red'><i>"to:"</i></font>)    <b>return</b> <u>Instruction</u>.<u>TO</u>;
+                <b>if</b>(<u>Token</u>.<u>Substring</u>(1, <u>Token</u>.<u>Length</u>-2) == <font color='red'><i>"set"</i></font>)    <b>return</b> <u>Instruction</u>.<u>SET</u>;
+                <b>if</b>(<u>Token</u>.<u>Substring</u>(1, <u>Token</u>.<u>Length</u>-2) == <font color='red'><i>"range"</i></font>)  <b>return</b> <u>Instruction</u>.<u>RANGE</u>;
+                <b>if</b>(<u>Token</u>.<u>Substring</u>(1, <u>Token</u>.<u>Length</u>-2) == <font color='red'><i>"notset"</i></font>) <b>return</b> <u>Instruction</u>.<u>NOTSET</u>;
+                <b>throw</b> <u>new</u> <u>Exception</u>(<u>string</u>.<u>Format</u>(<font color='red'><i>"Invalid instruction {0}."</i></font>, <u>Token</u>));
+            }
+        }
+
+        <b>public</b> <u>string</u> <u>ToResult</u> {
+            <u>get</u> { <b>return</b> <u>Token</u>.<u>Substring</u>(4, <u>Token</u>.<u>Length</u>-5); }
+        }
+    }
+
+    <b>public</b> <u>enum</u> <u>Instruction</u> {
+        <u>TO</u>,     <font color='green'><i>/* <to:xxx> overrides the result of the following NTS. */</i></font>
+        <u>SET</u>,    <font color='green'><i>/* <set> interprets the following TS as a set of characters */</i></font>
+        <u>RANGE</u>,  <font color='green'><i>/* <range> interprets the following TS as a range of characters */</i></font>
+        <u>NOTSET</u>, <font color='green'><i>/* <notset> interprets the following TS as a set of excluded characters */</i></font>
+    }
+}
+</pre></body></html>

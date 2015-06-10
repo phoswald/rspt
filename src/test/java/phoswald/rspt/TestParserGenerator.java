@@ -3,11 +3,9 @@ package phoswald.rspt;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
@@ -105,35 +103,11 @@ public class TestParserGenerator {
     }
 
     private void compareFiles(Path expected, Path actual) throws IOException {
-        List<String> linesExpected = readFile(expected);
-        List<String> linesActual   = readFile(actual);
+        List<String> linesExpected = Files.readAllLines(expected);
+        List<String> linesActual   = Files.readAllLines(actual);
         for(int i = 0; i < linesExpected.size() && i < linesActual.size(); i++) {
             assertEquals("Line " + (i+1) + " of " + linesExpected.size() + " does not match.", linesExpected.get(i), linesActual.get(i));
         }
         assertEquals("Number of lines do not match.", linesExpected.size(), linesActual.size());
-    }
-
-    private List<String> readFile(Path path) throws IOException {
-        List<String> lines = new ArrayList<>();
-        StringBuilder sb = new StringBuilder();
-        try(Reader reader = Files.newBufferedReader(path)) {
-            int i;
-            while((i = reader.read()) != -1) {
-                char c = (char) i;
-                switch(c) {
-                    case '\r':
-                        break;
-                    case '\n':
-                        lines.add(sb.toString());
-                        sb = new StringBuilder();
-                        break;
-                    default:
-                        sb.append(c);
-                        break;
-                }
-            }
-            lines.add(sb.toString());
-        }
-        return lines;
     }
 }

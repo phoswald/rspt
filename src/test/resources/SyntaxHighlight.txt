@@ -1,0 +1,44 @@
+### Root Symbols ###
+
+<export> ROOT = TEXT {<html><body><pre>$1</pre></body></html>} ;
+
+TEXT = WHITESPACE SOMETHING TEXT {$i1$2$3} |
+       WHITESPACE {$i1} ;
+
+WHITESPACE = <set> ' \t\r\n' WHITESPACE | ;
+
+SOMETHING = RESERVED <set> ' \t\r\n();,' {<b>$i1</b>$i2} | 
+            IDENT    {<u>$i1</u>} |
+            NUMBER   {$i1} |
+            STRING   {<font color='red'><i>$i1</i></font>} |
+            COMMENT  {<font color='green'><i>$i1</i></font>} |
+            <range> ' ☺' {$i1} ;
+            
+RESERVED = 'using' | 'namespace' | 'class' | 
+           'public' | 'private' | 'readonly' | 'static' | 'in' | 'ref' | 'out' |
+           'void' | 'int' | 'bool' | 'true' | 'false' |
+           'if' | 'else' | 'for' | 'while' | 'return' | 'break' |
+           'throw' | 'try' | 'catch' | 'finally' ;
+
+IDENT        = IDENTCHAR_1 IDENTCHARS_N ;
+IDENTCHARS_N = IDENTCHAR_N IDENTCHARS_N | ;
+IDENTCHAR_1  = <range> 'az' | <range> 'AZ' | '_' ;
+IDENTCHAR_N  = <range> 'az' | <range> 'AZ' | '_' | <range> '09' ;
+
+NUMBER = DIGIT DIGITS ;
+DIGITS = DIGIT DIGITS | ;
+DIGIT = <range> '09' ;
+
+STRING = '\"' STRINGCHARS '\"' ;
+STRINGCHARS = STRINGCHAR STRINGCHARS | ;
+STRINGCHAR  = <range> ' !'      | 
+              <range> '#☺'      | 
+              '\\' <range> ' ☺' ;
+
+COMMENT = '/*' NOT_COMMENTEND '*/' ;
+NOT_COMMENTEND = <range> ' )' NOT_COMMENTEND | 
+                 <range> '+☺' NOT_COMMENTEND |
+                 '*' <range> ' .' NOT_COMMENTEND |
+                 '*' <range> '0☺' NOT_COMMENTEND | ;
+
+ANYTHING = <range> ' ☺' ANYTHING | ;
