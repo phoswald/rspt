@@ -77,7 +77,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testLogAnalyzerCPlusPlus() throws IOException { // TODO UTF-16 cannot be processed. UTF-8 with BOM may also fail.
+    public void testLogAnalyzerCPlusPlus() throws IOException {
         Files.deleteIfExists(Paths.get("target", "test-output", "LogAnalyzer.h"));
 
         Main.main(new String[] {
