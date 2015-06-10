@@ -28,14 +28,14 @@ public class TestGrammar {
     }
 
     @Test
-    public void testUtf8WithoutBomMemory() throws IOException, SyntaxException {
+    public void testUtf8() throws IOException, SyntaxException {
         byte[] bytes = " <export> ROOT = '\u20ACuro' | 'bar' ;".getBytes(cs);
         Grammar grammar = new Grammar(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bytes), cs)));
         assertEquals("'€uro'", grammar.getExports().get(0).getRules().get(0).get(0).token);
     }
 
     @Test
-    public void testUtf8WithBomMemory() throws IOException, SyntaxException {
+    public void testUtf8Bom() throws IOException, SyntaxException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         bytes.write(new byte[] { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF });
         bytes.write(" <export> ROOT = '\u20ACuro' | 'bar' ;".getBytes(cs));
@@ -44,7 +44,7 @@ public class TestGrammar {
     }
 
     @Test
-    public void testUtf8WithBomFile() throws IOException, SyntaxException {
+    public void testUtf8BomFile() throws IOException, SyntaxException {
         Path file = Paths.get("target", "test-output", "test-utf8-bom.txt");
         try(OutputStream bytes = Files.newOutputStream(file)) {
             bytes.write(new byte[] { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF });
@@ -57,7 +57,7 @@ public class TestGrammar {
     }
 
     @Test(expected=SyntaxException.class)
-    public void testUtf16WithBomMemory() throws IOException, SyntaxException {
+    public void testUtf16Bom() throws IOException, SyntaxException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         bytes.write(new byte[] { (byte) 0xFF, (byte) 0xFE });
         bytes.write(" <export> ROOT = '\u20ACuro' | 'bar' ;".getBytes(StandardCharsets.UTF_16LE));
