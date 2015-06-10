@@ -87,6 +87,10 @@ public class Grammar {
         List<String> tokens = new ArrayList<>();
         StringBuilder token = new StringBuilder();
         Stack<Character> brace = new Stack<>();
+        reader.mark(1);
+        if(reader.read() != 0xFEFF) {
+            reader.reset();
+        }
         while(true) {
             int i = reader.read();
             if(i == -1) {
