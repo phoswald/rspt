@@ -75,9 +75,9 @@ public class Main {
                 }
             }
         } catch(SyntaxException | IOException ex) {
-            System.out.println("ERROR: Failed to generate parser: " + ex.getMessage() + "\r\n\r\n");
+            System.out.println("ERROR: Failed to generate parser: " + ex.getMessage());
+        } catch(RuntimeException ex) {
             ex.printStackTrace(System.out);
-            return;
         }
     }
 
@@ -99,9 +99,9 @@ public class Main {
                 }
             }
         } catch(SyntaxException | IOException ex) {
-            System.out.println("ERROR: Failed to parse: " + ex.getMessage() + "\r\n\r\n");
+            System.out.println("ERROR: Failed to parse: " + ex.getMessage());
+        } catch(RuntimeException ex) {
             ex.printStackTrace(System.out);
-            return;
         }
     }
 

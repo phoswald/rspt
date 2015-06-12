@@ -217,7 +217,7 @@ public final class Grammar {
             }
             pos++;
         }
-        for(SymbolNonTerm symbol : symbols) {
+        for(SymbolNonTerm symbol : index.values()) {
             if(symbol.getRules().size() == 0) {
                 throw new SyntaxException(symbol.getName() + ": Symbol is used but not defined.");
             }
