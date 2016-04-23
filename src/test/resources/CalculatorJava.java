@@ -8,28 +8,26 @@ import java.util.*;
 
 public class CalculatorParser {
 
-    private char[] _input;
-
-    public CalculatorParser() { }
+    private char[] input;
 
     private static final Map<String,Double> _variables = new HashMap<String,Double>();
 
-    public String Parse_ROOT(String input) throws ParserException {
-        _input = input.toCharArray();
+    public String parseROOT(String input) throws ParserException {
+        this.input = input.toCharArray();
         Ref_int pos = new Ref_int(0);
         Ref<String> output = new Ref<>(null);
-        if(nt_ROOT(pos, output) && pos.val == _input.length) { 
+        if(nt_ROOT(pos, output) && pos.val == this.input.length) { 
             return output.val;
         } else {
             throw new ParserException(input, pos.val);
         }
     }
 
-    public Double Parse_EXPRESSION(String input) throws ParserException {
-        _input = input.toCharArray();
+    public Double parseEXPRESSION(String input) throws ParserException {
+        this.input = input.toCharArray();
         Ref_int pos = new Ref_int(0);
         Ref<Double> output = new Ref<>(null);
-        if(nt_EXPRESSION(pos, output) && pos.val == _input.length) { 
+        if(nt_EXPRESSION(pos, output) && pos.val == this.input.length) { 
             return output.val;
         } else {
             throw new ParserException(input, pos.val);
@@ -451,20 +449,20 @@ public class CalculatorParser {
 
     private boolean ts(final Ref_int pos, char[] s) {
         for(char c : s) {
-            if(pos.val >= _input.length || _input[pos.val] != c) return false;
+            if(pos.val >= input.length || input[pos.val] != c) return false;
             pos.val++;
         }
         return true;
     }
 
     private boolean tc(final Ref_int pos, char c) {
-        if(pos.val >= _input.length || _input[pos.val] != c) return false;
+        if(pos.val >= input.length || input[pos.val] != c) return false;
         pos.val++;
         return true;
     }
 
     private boolean trange(final Ref_int pos, char c1, char c2) {
-        if(pos.val >= _input.length || _input[pos.val] < c1 || _input[pos.val] > c2) return false;
+        if(pos.val >= input.length || input[pos.val] < c1 || input[pos.val] > c2) return false;
         pos.val++;
         return true;
     }

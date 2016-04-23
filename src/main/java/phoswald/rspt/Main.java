@@ -54,8 +54,9 @@ public class Main {
         System.out.println("Generating parser '" + parserFile + "' from grammar '" + grammarFile + "'.");
         try(Reader grammarStream = Files.newBufferedReader(grammarFile);
                 Writer parserStream = Files.newBufferedWriter(parserFile)) {
-            Grammar grammar = new Grammar(grammarStream);
-            Generator generator = createGenerator(grammar, type);
+            GrammarType grammarType = GrammarType.valueOf(type.toUpperCase());
+            Grammar grammar = grammarType.createGrammar(grammarStream);
+            Generator generator = grammarType.createGenerator(grammar);
             generator.generate(parserStream);
         }
     }
@@ -70,19 +71,6 @@ public class Main {
             String input  = readToEnd(inputStream);
             String output = parser.parse(input);
             outputStream.write(output);
-        }
-    }
-
-    private static Generator createGenerator(Grammar grammar, String type) throws SyntaxException {
-        switch(type) {
-            case "java":
-                return new GeneratorJava(grammar);
-            case "cs":
-                return new GeneratorCSharp(grammar);
-            case "cpp":
-                return new GeneratorCPlusPlus(grammar);
-            default:
-                throw new SyntaxException("Invalid generator type '" + type + "'.");
         }
     }
 

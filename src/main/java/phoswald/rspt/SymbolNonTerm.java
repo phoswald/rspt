@@ -31,7 +31,7 @@ public class SymbolNonTerm extends Symbol {
         return type;
     }
 
-    public void setType(String type) {
+    void setType(String type) {
         this.type = type;
     }
 
@@ -39,7 +39,7 @@ public class SymbolNonTerm extends Symbol {
         return Collections.unmodifiableList(rules);
     }
 
-    public void addRule(List<Symbol> rule) {
+    void addRule(List<Symbol> rule) {
         rules.add(rule);
     }
 }

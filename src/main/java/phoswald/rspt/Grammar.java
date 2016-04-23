@@ -9,32 +9,37 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-public final class Grammar {
+public class Grammar {
 
     /**
-     * The package or namespace of the parser class.
+     * The type of the input characters (i.e. character, byte, etc).
      */
-    private String namespace;
+    private String inputType;
 
     /**
-     * The class name of the parser class.
+     * The default type of non terminal symbols (i.e. Object, void*, etc).
      */
-    private String parser;
+    private String defaultSymbolType;
 
     /**
-     * The type or class name of the input characters (i.e. character, byte, etc).
+     * The name of the parser class.
      */
-    private String character;
+    private String parserClass;
 
     /**
-     * A list of Java package import, C++ include or C# using directives.
+     * The package (or namespace) of the parser class.
      */
-    private final List<String> includes = new ArrayList<>();
+    private String parserPackage;
+
+    /**
+     * A list of import (or include or using) statments.
+     */
+    private final List<String> importStmts = new ArrayList<>();
 
     /**
      * A list of source code fragments to be included into the parser class.
      */
-    private final List<String> codes = new ArrayList<>();
+    private final List<String> codeFragments = new ArrayList<>();
 
     private final Map<String, SymbolNonTerm> index = new HashMap<>();
 
@@ -42,37 +47,36 @@ public final class Grammar {
 
     private final List<SymbolNonTerm> symbols = new ArrayList<>();
 
-    public Grammar(Reader reader) throws IOException, SyntaxException {
-        List<String> tokens = tokenize(reader);
-        parse(tokens);
+    Grammar(Reader reader) throws IOException, SyntaxException {
+        this(reader, null, null, null, null);
     }
 
-    public String getNamespace() {
-        return namespace;
+    Grammar(Reader reader, String defaultCharacterType, String defaultSymbolType, String defaultParserClass, String defaultParserPackage) throws IOException, SyntaxException {
+        this.inputType = defaultCharacterType;
+        this.defaultSymbolType = defaultSymbolType;
+        this.parserClass = defaultParserClass;
+        this.parserPackage = defaultParserPackage;
+        parse(tokenize(reader));
     }
 
-    public String getParser() {
-        return parser;
+    public String getInputType() {
+        return inputType;
     }
 
-    public void setParser(String parser) {
-        this.parser = parser;
+    public String getParserClass() {
+        return parserClass;
     }
 
-    public String getCharacter() {
-        return character;
+    public String getParserPackage() {
+        return parserPackage;
     }
 
-    public void setCharacter(String character) {
-        this.character = character;
+    public List<String> getImportStmts() {
+        return Collections.unmodifiableList(importStmts);
     }
 
-    public List<String> getIncludes() {
-        return Collections.unmodifiableList(includes);
-    }
-
-    public List<String> getCodes() {
-        return Collections.unmodifiableList(codes);
+    public List<String> getCodeFragments() {
+        return Collections.unmodifiableList(codeFragments);
     }
 
     public List<SymbolNonTerm> getExports() {
@@ -174,14 +178,14 @@ public final class Grammar {
             String token = tokens.get(pos);
             if(token.equals("<export>")) {
                 exp = true;
-            } else if(token.startsWith("<include:") && token.charAt(token.length()-1) == '>') {
-                includes.add(token.substring(9, token.length()-1));
-            } else if(token.startsWith("<namespace:") && token.charAt(token.length()-1) == '>') {
-                namespace = token.substring(11, token.length()-1);
             } else if(token.startsWith("<class:") && token.charAt(token.length()-1) == '>') {
-                parser = token.substring(7, token.length()-1);
+                parserClass = token.substring(7, token.length()-1);
+            } else if(token.startsWith("<namespace:") && token.charAt(token.length()-1) == '>') {
+                parserPackage = token.substring(11, token.length()-1);
+            } else if(token.startsWith("<include:") && token.charAt(token.length()-1) == '>') {
+                importStmts.add(token.substring(9, token.length()-1));
             } else if(token.length() > 2 && token.charAt(0) == '{' && token.charAt(token.length()-1) == '}') {
-                codes.add(token.substring(1, token.length()-1));
+                codeFragments.add(token.substring(1, token.length()-1));
             } else {
                 SymbolNonTerm symbol = getSymbol(token);
                 symbols.add(symbol);
@@ -220,6 +224,9 @@ public final class Grammar {
         for(SymbolNonTerm symbol : index.values()) {
             if(symbol.getRules().size() == 0) {
                 throw new SyntaxException(symbol.getName() + ": Symbol is used but not defined.");
+            }
+            if(symbol.getType() == null) {
+                symbol.setType(defaultSymbolType);
             }
         }
     }

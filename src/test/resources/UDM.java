@@ -11,9 +11,7 @@ import udm.core.expressions.*;
 
 public class Parser {
 
-    private char[] _input;
-
-    public Parser() { }
+    private char[] input;
 
     
     public UdmSession session;
@@ -42,22 +40,22 @@ public class Parser {
     }
 
 
-    public ArrayList<Expression> Parse_ROOT_STATEMENT_LIST(String input) throws ParserException {
-        _input = input.toCharArray();
+    public ArrayList<Expression> parseROOT_STATEMENT_LIST(String input) throws ParserException {
+        this.input = input.toCharArray();
         Ref_int pos = new Ref_int(0);
         Ref<ArrayList<Expression>> output = new Ref<>(null);
-        if(nt_ROOT_STATEMENT_LIST(pos, output) && pos.val == _input.length) { 
+        if(nt_ROOT_STATEMENT_LIST(pos, output) && pos.val == this.input.length) { 
             return output.val;
         } else {
             throw new ParserException(input, pos.val);
         }
     }
 
-    public UdmValue Parse_ROOT_VALUE(String input) throws ParserException {
-        _input = input.toCharArray();
+    public UdmValue parseROOT_VALUE(String input) throws ParserException {
+        this.input = input.toCharArray();
         Ref_int pos = new Ref_int(0);
         Ref<UdmValue> output = new Ref<>(null);
-        if(nt_ROOT_VALUE(pos, output) && pos.val == _input.length) { 
+        if(nt_ROOT_VALUE(pos, output) && pos.val == this.input.length) { 
             return output.val;
         } else {
             throw new ParserException(input, pos.val);
@@ -3522,21 +3520,21 @@ public class Parser {
 
     private boolean ts(final Ref_int pos, char[] s) {
         for(char c : s) {
-            if(pos.val >= _input.length || _input[pos.val] != c) return false;
+            if(pos.val >= input.length || input[pos.val] != c) return false;
             pos.val++;
         }
         return true;
     }
 
     private boolean tc(final Ref_int pos, char c) {
-        if(pos.val >= _input.length || _input[pos.val] != c) return false;
+        if(pos.val >= input.length || input[pos.val] != c) return false;
         pos.val++;
         return true;
     }
 
     private boolean tset(final Ref_int pos, char[] s) {
         for(int i = 0; i < s.length; i++) {
-            if(pos.val < _input.length && s[i] == _input[pos.val]) {
+            if(pos.val < input.length && s[i] == input[pos.val]) {
                 pos.val++;
                 return true;
             }
@@ -3545,14 +3543,14 @@ public class Parser {
     }
 
     private boolean trange(final Ref_int pos, char c1, char c2) {
-        if(pos.val >= _input.length || _input[pos.val] < c1 || _input[pos.val] > c2) return false;
+        if(pos.val >= input.length || input[pos.val] < c1 || input[pos.val] > c2) return false;
         pos.val++;
         return true;
     }
 
     private boolean tnotset(final Ref_int pos, char[] s) {
         for(int i = 0; i < s.length; i++) {
-            if(pos.val >= _input.length || s[i] == _input[pos.val]) {
+            if(pos.val >= input.length || s[i] == input[pos.val]) {
                 return false;
             }
         }
