@@ -47,11 +47,15 @@ public class GeneratorJava extends Generator {
         }
         for(SymbolNonTerm sym : grammar.getExports()) {
             writeLine(writer, "");
-            writeLine(writer, "    public boolean Parse_" + sym.getName() + "(String input, final Ref<" + sym.getType() + "> output, final Ref_int pos) {");
-            writeLine(writer, "        _input     = input.toCharArray();");
-            writeLine(writer, "        pos.val    = 0;");
-            writeLine(writer, "        output.val = null;");
-            writeLine(writer, "        return nt_" + sym.getName() + "(pos, output) && pos.val == _input.length;");
+            writeLine(writer, "    public " + sym.getType() + " Parse_" + sym.getName() + "(String input) throws ParserException {");
+            writeLine(writer, "        _input = input.toCharArray();");
+            writeLine(writer, "        Ref_int pos = new Ref_int(0);");
+            writeLine(writer, "        Ref<" + sym.getType() + "> output = new Ref<>(null);");
+            writeLine(writer, "        if(nt_" + sym.getName() + "(pos, output) && pos.val == _input.length) { ");
+            writeLine(writer, "            return output.val;");
+            writeLine(writer, "        } else {");
+            writeLine(writer, "            throw new ParserException(input, pos.val);");
+            writeLine(writer, "        }");
             writeLine(writer, "    }");
         }
         boolean need_ts      = false;
@@ -198,14 +202,33 @@ public class GeneratorJava extends Generator {
             writeLine(writer, "    private static final " + grammar.getCharacter() + "[] t_" + (i+1) + " = \"" + quote(literals.get(i)) + "\".toCharArray();");
         }
         writeLine(writer, "");
-        writeLine(writer, "    public final static class Ref <T> {");
-        writeLine(writer, "        public T val;");
-        writeLine(writer, "        public Ref(T val) { this.val = val; }");
+        writeLine(writer, "    private static final class Ref <T> {");
+        writeLine(writer, "        private T val;");
+        writeLine(writer, "        private Ref(T val) { this.val = val; }");
         writeLine(writer, "    }");
         writeLine(writer, "");
-        writeLine(writer, "    public final static class Ref_int {");
-        writeLine(writer, "        public int val;");
-        writeLine(writer, "        public Ref_int(int val) { this.val = val; }");
+        writeLine(writer, "    private static final class Ref_int {");
+        writeLine(writer, "        private int val;");
+        writeLine(writer, "        private Ref_int(int val) { this.val = val; }");
+        writeLine(writer, "    }");
+        writeLine(writer, "");
+        writeLine(writer, "    public static class ParserException extends RuntimeException {");
+        writeLine(writer, "        private static final long serialVersionUID = 1L;");
+        writeLine(writer, "        private final String input;");
+        writeLine(writer, "        private final int position;");
+        writeLine(writer, "");
+        writeLine(writer, "        public ParserException(String input, int position) {");
+        writeLine(writer, "            this.input = input;");
+        writeLine(writer, "            this.position = position;");
+        writeLine(writer, "        }");
+        writeLine(writer, "");
+        writeLine(writer, "        public String getInput() {");
+        writeLine(writer, "            return input;");
+        writeLine(writer, "        }");
+        writeLine(writer, "");
+        writeLine(writer, "        public int getPosition() {");
+        writeLine(writer, "            return position;");
+        writeLine(writer, "        }");
         writeLine(writer, "    }");
         writeLine(writer, "}");
     }

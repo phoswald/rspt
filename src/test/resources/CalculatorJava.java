@@ -14,18 +14,26 @@ public class CalculatorParser {
 
     private static final Map<String,Double> _variables = new HashMap<String,Double>();
 
-    public boolean Parse_ROOT(String input, final Ref<String> output, final Ref_int pos) {
-        _input     = input.toCharArray();
-        pos.val    = 0;
-        output.val = null;
-        return nt_ROOT(pos, output) && pos.val == _input.length;
+    public String Parse_ROOT(String input) throws ParserException {
+        _input = input.toCharArray();
+        Ref_int pos = new Ref_int(0);
+        Ref<String> output = new Ref<>(null);
+        if(nt_ROOT(pos, output) && pos.val == _input.length) { 
+            return output.val;
+        } else {
+            throw new ParserException(input, pos.val);
+        }
     }
 
-    public boolean Parse_EXPRESSION(String input, final Ref<Double> output, final Ref_int pos) {
-        _input     = input.toCharArray();
-        pos.val    = 0;
-        output.val = null;
-        return nt_EXPRESSION(pos, output) && pos.val == _input.length;
+    public Double Parse_EXPRESSION(String input) throws ParserException {
+        _input = input.toCharArray();
+        Ref_int pos = new Ref_int(0);
+        Ref<Double> output = new Ref<>(null);
+        if(nt_EXPRESSION(pos, output) && pos.val == _input.length) { 
+            return output.val;
+        } else {
+            throw new ParserException(input, pos.val);
+        }
     }
 
     private boolean nt_ROOT(final Ref_int pos, final Ref<String> output) {
@@ -465,13 +473,32 @@ public class CalculatorParser {
     private static final char[] t_2 = "About".toCharArray();
     private static final char[] t_3 = "pi".toCharArray();
 
-    public final static class Ref <T> {
-        public T val;
-        public Ref(T val) { this.val = val; }
+    private static final class Ref <T> {
+        private T val;
+        private Ref(T val) { this.val = val; }
     }
 
-    public final static class Ref_int {
-        public int val;
-        public Ref_int(int val) { this.val = val; }
+    private static final class Ref_int {
+        private int val;
+        private Ref_int(int val) { this.val = val; }
+    }
+
+    public static class ParserException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+        private final String input;
+        private final int position;
+
+        public ParserException(String input, int position) {
+            this.input = input;
+            this.position = position;
+        }
+
+        public String getInput() {
+            return input;
+        }
+
+        public int getPosition() {
+            return position;
+        }
     }
 }
