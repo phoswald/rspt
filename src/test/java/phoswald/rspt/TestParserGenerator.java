@@ -19,7 +19,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testCalculatorJava() throws IOException {
+    public void testCalculatorJava() throws IOException, SyntaxException {
         Files.deleteIfExists(Paths.get("target", "test-output", "CalculatorJava.java"));
 
         Main.main(new String[] {
@@ -33,7 +33,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testCalculatorCSharp() throws IOException {
+    public void testCalculatorCSharp() throws IOException, SyntaxException {
         Files.deleteIfExists(Paths.get("target", "test-output", "CalculatorCS.cs"));
 
         Main.main(new String[] {
@@ -47,7 +47,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testCalculatorCPlusPlus() throws IOException {
+    public void testCalculatorCPlusPlus() throws IOException, SyntaxException {
         Files.deleteIfExists(Paths.get("target", "test-output", "CalculatorCPP.h"));
 
         Main.main(new String[] {
@@ -61,7 +61,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testIcbScriptCPlusPlus() throws IOException {
+    public void testIcbScriptCPlusPlus() throws IOException, SyntaxException {
         Files.deleteIfExists(Paths.get("target", "test-output", "IcbScript.h"));
 
         Main.main(new String[] {
@@ -75,7 +75,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testLogAnalyzerCPlusPlus() throws IOException {
+    public void testLogAnalyzerCPlusPlus() throws IOException, SyntaxException {
         Files.deleteIfExists(Paths.get("target", "test-output", "LogAnalyzer.h"));
 
         Main.main(new String[] {
@@ -89,7 +89,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testUdmJava() throws IOException {
+    public void testUdmJava() throws IOException, SyntaxException {
         Files.deleteIfExists(Paths.get("target", "test-output", "UDM.java"));
 
         Main.main(new String[] {

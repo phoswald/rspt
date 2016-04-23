@@ -19,7 +19,7 @@ public class TestGrammarInterpeter {
     }
 
     @Test
-    public void testSyntaxHighlightHtml() throws IOException {
+    public void testSyntaxHighlightHtml() throws IOException, SyntaxException {
         Files.deleteIfExists(Paths.get("target", "test-output", "SyntaxHighlight.html"));
 
         Main.main(new String[] {
