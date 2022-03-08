@@ -1,6 +1,6 @@
 package phoswald.rspt;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,18 +8,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class TestParserGenerator {
+class TestParserGenerator {
 
-    @Before
-    public void prepare() throws IOException {
+    @BeforeEach
+    void prepare() throws IOException {
         Files.createDirectories(Paths.get("target", "test-output"));
     }
 
     @Test
-    public void testCalculatorJava() throws IOException, SyntaxException {
+    void testCalculatorJava() throws IOException, SyntaxException {
         Files.deleteIfExists(Paths.get("target", "test-output", "CalculatorJava.java"));
 
         Main.main(new String[] {
@@ -33,7 +33,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testCalculatorCSharp() throws IOException, SyntaxException {
+    void testCalculatorCSharp() throws IOException, SyntaxException {
         Files.deleteIfExists(Paths.get("target", "test-output", "CalculatorCS.cs"));
 
         Main.main(new String[] {
@@ -47,7 +47,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testCalculatorCPlusPlus() throws IOException, SyntaxException {
+    void testCalculatorCPlusPlus() throws IOException, SyntaxException {
         Files.deleteIfExists(Paths.get("target", "test-output", "CalculatorCPP.h"));
 
         Main.main(new String[] {
@@ -61,7 +61,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testIcbScriptCPlusPlus() throws IOException, SyntaxException {
+    void testIcbScriptCPlusPlus() throws IOException, SyntaxException {
         Files.deleteIfExists(Paths.get("target", "test-output", "IcbScript.h"));
 
         Main.main(new String[] {
@@ -75,7 +75,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testLogAnalyzerCPlusPlus() throws IOException, SyntaxException {
+    void testLogAnalyzerCPlusPlus() throws IOException, SyntaxException {
         Files.deleteIfExists(Paths.get("target", "test-output", "LogAnalyzer.h"));
 
         Main.main(new String[] {
@@ -89,7 +89,7 @@ public class TestParserGenerator {
     }
 
     @Test
-    public void testUdmJava() throws IOException, SyntaxException {
+    void testUdmJava() throws IOException, SyntaxException {
         Files.deleteIfExists(Paths.get("target", "test-output", "UDM.java"));
 
         Main.main(new String[] {
@@ -106,8 +106,8 @@ public class TestParserGenerator {
         List<String> linesExpected = Files.readAllLines(expected);
         List<String> linesActual   = Files.readAllLines(actual);
         for(int i = 0; i < linesExpected.size() && i < linesActual.size(); i++) {
-            assertEquals("Line " + (i+1) + " of " + linesExpected.size() + " does not match.", linesExpected.get(i), linesActual.get(i));
+            assertEquals(linesExpected.get(i), linesActual.get(i), "Line " + (i+1) + " of " + linesExpected.size() + " does not match.");
         }
-        assertEquals("Number of lines do not match.", linesExpected.size(), linesActual.size());
+        assertEquals(linesExpected.size(), linesActual.size(), "Number of lines do not match.");
     }
 }

@@ -1,6 +1,6 @@
 package phoswald.rspt;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,18 +8,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class TestGrammarInterpeter {
+class TestGrammarInterpeter {
 
-    @Before
-    public void prepare() throws IOException {
+    @BeforeEach
+    void prepare() throws IOException {
         Files.createDirectories(Paths.get("target", "test-output"));
     }
 
     @Test
-    public void testSyntaxHighlightHtml() throws IOException, SyntaxException {
+    void testSyntaxHighlightHtml() throws IOException, SyntaxException {
         Files.deleteIfExists(Paths.get("target", "test-output", "SyntaxHighlight.html"));
 
         Main.main(new String[] {
@@ -37,8 +37,8 @@ public class TestGrammarInterpeter {
         List<String> linesExpected = Files.readAllLines(expected);
         List<String> linesActual   = Files.readAllLines(actual);
         for(int i = 0; i < linesExpected.size() && i < linesActual.size(); i++) {
-            assertEquals("Line " + (i+1) + " of " + linesExpected.size() + " does not match.", linesExpected.get(i), linesActual.get(i));
+            assertEquals(linesExpected.get(i), linesActual.get(i), "Line " + (i+1) + " of " + linesExpected.size() + " does not match.");
         }
-        assertEquals("Number of lines do not match.", linesExpected.size(), linesActual.size());
+        assertEquals(linesExpected.size(), linesActual.size(), "Number of lines do not match.");
     }
 }
