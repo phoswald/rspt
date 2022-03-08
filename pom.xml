@@ -33,17 +33,6 @@
           <release>17</release>
         </configuration>
       </plugin>
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.5</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>phoswald.rspt.Main</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 

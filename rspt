@@ -1,2 +1,2 @@
 #!/bin/sh
-java -jar target/rspt-*.jar $*
+java -cp target/rspt-*.jar phoswald.rspt.Main $*
