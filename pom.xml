@@ -8,19 +8,16 @@
   <artifactId>rspt</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
-  <name>${project.artifactId}</name>
-  <description>Really Simple Parser Tool</description>
-  <url>https://github.com/phoswald/rspt</url>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>17</maven.compiler.release>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.8.2</version>
+      <version>5.9.1</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -29,10 +26,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.10.0</version>
-        <configuration>
-          <release>17</release>
-        </configuration>
+        <version>3.10.1</version>
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
